@@ -234,17 +234,46 @@ def register_answer(choice):
 
     q = QUESTIONS[current_number]
 
-    selected_text = (
-        q["a"]
-        if choice == "a"
-        else q["b"]
-    )
+    # 4択:
+    # a_strong = Aにかなり近い
+    # a_weak   = Aにやや近い
+    # b_weak   = Bにやや近い
+    # b_strong = Bにかなり近い
+    #
+    # high_choice が A の質問なら:
+    # A強=10, A弱=7, B弱=3, B強=0
+    #
+    # high_choice が B の質問なら逆転:
+    # A強=0, A弱=3, B弱=7, B強=10
 
-    score = (
-        10
-        if choice == q["high_choice"]
-        else 0
-    )
+    if q["high_choice"] == "a":
+
+        score_map = {
+            "a_strong": 10,
+            "a_weak": 7,
+            "b_weak": 3,
+            "b_strong": 0
+        }
+
+    else:
+
+        score_map = {
+            "a_strong": 0,
+            "a_weak": 3,
+            "b_weak": 7,
+            "b_strong": 10
+        }
+
+    score = score_map[choice]
+
+    if choice == "a_strong":
+        selected_text = f"Aにかなり近い：{q['a']}"
+    elif choice == "a_weak":
+        selected_text = f"Aにやや近い：{q['a']}"
+    elif choice == "b_weak":
+        selected_text = f"Bにやや近い：{q['b']}"
+    else:
+        selected_text = f"Bにかなり近い：{q['b']}"
 
     data["answers"].append(
         {
@@ -353,7 +382,7 @@ st.markdown(
 st.markdown(
     """
     <div class="sub-title">
-    100の質問から、
+    100の4択質問から、
     あなたに近い歴史人物を分析します
     </div>
     """,
@@ -373,7 +402,7 @@ if st.session_state.page == "ホーム":
 
     st.write(
         """
-        100個の質問に答えることで、
+        100個の4択質問に答えることで、
         あなたの考え方や行動傾向を
         10種類の性格軸で分析します。
 
@@ -482,32 +511,59 @@ elif st.session_state.page == "性格診断":
             unsafe_allow_html=True
         )
 
-        st.write("どちらが自分に近いですか？")
+        st.write("自分にどのくらい近いか選んでください。")
+
+        st.markdown(
+            f"""
+            **A：{q["a"]}**  
+            **B：{q["b"]}**
+            """
+        )
 
         col1, col2 = st.columns(2)
 
         with col1:
 
             if st.button(
-                "A\n\n" + q["a"],
+                "① Aにかなり近い",
                 use_container_width=True,
                 type="primary",
-                key=f"a_{current}"
+                key=f"a_strong_{current}"
             ):
 
-                register_answer("a")
+                register_answer("a_strong")
+
+                st.rerun()
+
+            if st.button(
+                "② Aにやや近い",
+                use_container_width=True,
+                key=f"a_weak_{current}"
+            ):
+
+                register_answer("a_weak")
 
                 st.rerun()
 
         with col2:
 
             if st.button(
-                "B\n\n" + q["b"],
+                "③ Bにやや近い",
                 use_container_width=True,
-                key=f"b_{current}"
+                key=f"b_weak_{current}"
             ):
 
-                register_answer("b")
+                register_answer("b_weak")
+
+                st.rerun()
+
+            if st.button(
+                "④ Bにかなり近い",
+                use_container_width=True,
+                key=f"b_strong_{current}"
+            ):
+
+                register_answer("b_strong")
 
                 st.rerun()
 
