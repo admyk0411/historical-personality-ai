@@ -52,6 +52,12 @@ OPENAI_MODEL = os.getenv(
 )
 
 
+def get_openai_api_key():
+    try:
+        return st.secrets["OPENAI_API_KEY"]
+    except Exception:
+        return os.getenv("OPENAI_API_KEY")
+
 # ============================================================
 # デザイン
 # ============================================================
@@ -674,9 +680,7 @@ elif st.session_state.page == "AI詳細分析":
             "まず性格診断をしてください。"
         )
 
-    elif not os.getenv(
-        "OPENAI_API_KEY"
-    ):
+elif not get_openai_api_key():
 
         st.error(
             "OPENAI_API_KEY が設定されていません。"
@@ -723,7 +727,9 @@ elif st.session_state.page == "AI詳細分析":
 
                 from openai import OpenAI
 
-                client = OpenAI()
+                client = OpenAI(
+                    api_key=get_openai_api_key()
+                ) 
 
                 score_text = "\n".join(
                     f"{trait}: {value}/100"
