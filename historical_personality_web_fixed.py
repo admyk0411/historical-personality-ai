@@ -22,13 +22,13 @@ from PIL import Image, ImageDraw, ImageFont, ImageFilter
 
 # ============================================================
 # 歴史上の人物 性格診断 — Ultimate Edition
-# 100問 / 5択 / 10軸 / 20人物（男性10・女性10）
+# 最大100問 / 5択 / 10軸 / 20人物（男性10・女性10） / 適応型質問
 #
 # 設計方針
 # - AI分析エンジン搭載（特徴ベクトル＋複数類似度スコア）
 # - 外部生成AI API不要（APIクレジット切れで診断停止しない）
 # - 生IPは保存しない。HMAC-SHA256の擬似識別子のみ保存
-# - 100問の回答を各軸に数値化し、20人物から必ず1人に確定
+# - 最大100問の適応型質問で、回答傾向に応じて次の質問を動的選択
 # - 診断理由 / 強み / 注意点 / 向いている仕事 / 相性タイプ
 # - 結果画像（SNSカード）を自動生成
 # - X / LINE / Facebook 共有導線
@@ -38,7 +38,7 @@ from PIL import Image, ImageDraw, ImageFont, ImageFilter
 # ============================================================
 
 st.set_page_config(
-    page_title="AI歴史上の人物 性格診断｜100問でわかるあなたの偉人タイプ",
+    page_title="AI歴史人物・罪人格診断｜100問以内であなたのタイプを判定",
     page_icon="🏛️",
     layout="centered",
     initial_sidebar_state="collapsed",
@@ -353,186 +353,188 @@ assert len(QUESTIONS) == 100
 # These are editorial diagnosis profiles, not psychological facts.
 # ------------------------------------------------------------
 FIGURES = [
+    # ---------------- 男性10人 ----------------
     {
-        "name":"織田信長","roman":"ODA NOBUNAGA","gender":"男性","symbol":"⚔","era":"戦国時代",
-        "tagline":"常識を壊し、決断で時代を動かす革新リーダー",
-        "profile":{"leadership":95,"novelty":95,"logic":55,"social":35,"structure":20,"empathy":-45,"resilience":75,"independence":90,"idealism":45,"action":95},
-        "strengths":["大胆な意思決定","既存ルールを疑う革新性","変化局面での推進力"],
-        "watchouts":["結論を急ぎすぎる","周囲への配慮が後回しになりやすい"],
-        "jobs":["起業家","新規事業開発","事業責任者","プロダクト責任者"],
+        "name":"織田信長","roman":"ODA NOBUNAGA","gender":"男性","category":"偉人","symbol":"⚔","era":"戦国時代",
+        "tagline":"変化を恐れず、常識ごと壊して突き進む超革新型",
+        "profile":{"leadership":98,"novelty":100,"logic":45,"social":20,"structure":5,"empathy":-65,"resilience":85,"independence":100,"idealism":35,"action":100},
+        "strengths":["圧倒的な決断力","常識を疑う革新性","変化を起こす推進力"],
+        "watchouts":["周囲を置き去りにしやすい","成果を急ぎすぎる"],
+        "jobs":["起業家","新規事業責任者","プロダクト責任者","変革コンサルタント"],
         "motif":"flame",
     },
     {
-        "name":"徳川家康","roman":"TOKUGAWA IEYASU","gender":"男性","symbol":"🏯","era":"戦国〜江戸",
-        "tagline":"長期戦に強く、勝ち筋を積み上げる安定型ストラテジスト",
-        "profile":{"leadership":75,"novelty":-40,"logic":80,"social":20,"structure":95,"empathy":15,"resilience":95,"independence":60,"idealism":10,"action":20},
-        "strengths":["長期視点","リスク管理","粘り強い計画遂行"],
-        "watchouts":["慎重さが強すぎると機会を逃す","変化の初動が遅くなりやすい"],
-        "jobs":["経営企画","PMO","リスク管理","プロジェクトマネージャー"],
+        "name":"徳川家康","roman":"TOKUGAWA IEYASU","gender":"男性","category":"偉人","symbol":"🏯","era":"戦国〜江戸",
+        "tagline":"急がず崩れず、最後まで勝ち筋を積み上げる超安定型",
+        "profile":{"leadership":65,"novelty":-95,"logic":90,"social":-20,"structure":100,"empathy":5,"resilience":100,"independence":55,"idealism":-35,"action":-55},
+        "strengths":["長期戦への強さ","リスク管理","緻密な計画"],
+        "watchouts":["慎重になりすぎる","好機でも初動が遅くなりやすい"],
+        "jobs":["経営企画","PMO","リスク管理","管理責任者"],
         "motif":"castle",
     },
     {
-        "name":"坂本龍馬","roman":"SAKAMOTO RYOMA","gender":"男性","symbol":"🌊","era":"幕末",
-        "tagline":"人と人をつなぎ、新しい未来を動かす変革コネクター",
-        "profile":{"leadership":65,"novelty":90,"logic":45,"social":90,"structure":-20,"empathy":65,"resilience":65,"independence":80,"idealism":85,"action":90},
-        "strengths":["人脈形成","新しい構想","立場を越えた調整"],
-        "watchouts":["細部の詰めが甘くなりやすい","興味が広がりすぎる"],
-        "jobs":["ITコンサルタント","事業開発","アライアンス","ソリューション営業"],
+        "name":"坂本龍馬","roman":"SAKAMOTO RYOMA","gender":"男性","category":"偉人","symbol":"🌊","era":"幕末",
+        "tagline":"人と人をつなぎ、思いついた未来へすぐ動く交流革命型",
+        "profile":{"leadership":45,"novelty":100,"logic":20,"social":100,"structure":-75,"empathy":75,"resilience":40,"independence":85,"idealism":90,"action":100},
+        "strengths":["人脈形成","新しい構想","行動の速さ"],
+        "watchouts":["細部の管理が甘くなりやすい","興味が移りやすい"],
+        "jobs":["ITコンサルタント","事業開発","アライアンス","営業"],
         "motif":"wave",
     },
     {
-        "name":"西郷隆盛","roman":"SAIGO TAKAMORI","gender":"男性","symbol":"◆","era":"幕末〜明治",
-        "tagline":"信念と人望で組織を動かす情熱型リーダー",
-        "profile":{"leadership":80,"novelty":35,"logic":10,"social":55,"structure":30,"empathy":80,"resilience":85,"independence":65,"idealism":90,"action":70},
-        "strengths":["人望","使命感","困難に耐える強さ"],
-        "watchouts":["信念が強すぎると柔軟性を失う","情に引っ張られやすい"],
-        "jobs":["組織マネジメント","人事・HR","公共領域","チームリーダー"],
-        "motif":"mountain",
-    },
-    {
-        "name":"福沢諭吉","roman":"FUKUZAWA YUKICHI","gender":"男性","symbol":"📚","era":"幕末〜明治",
-        "tagline":"学びと合理性で社会を変える自立型の啓蒙家",
-        "profile":{"leadership":50,"novelty":75,"logic":85,"social":30,"structure":60,"empathy":30,"resilience":70,"independence":90,"idealism":75,"action":55},
-        "strengths":["学習力","論理的説明","自立した判断"],
-        "watchouts":["理屈を優先しすぎる","他者にも自立を求めすぎる"],
-        "jobs":["コンサルタント","教育・研修","政策分析","リサーチ"],
-        "motif":"book",
-    },
-    {
-        "name":"レオナルド・ダ・ヴィンチ","roman":"LEONARDO DA VINCI","gender":"男性","symbol":"✦","era":"ルネサンス",
-        "tagline":"好奇心で分野を越境する万能クリエイター",
-        "profile":{"leadership":10,"novelty":100,"logic":90,"social":-20,"structure":10,"empathy":25,"resilience":45,"independence":95,"idealism":70,"action":30},
-        "strengths":["越境的な発想","観察力","創造と分析の両立"],
-        "watchouts":["関心が分散しやすい","完成より探究を優先しやすい"],
-        "jobs":["研究開発","UX/プロダクトデザイン","データサイエンス","技術企画"],
+        "name":"レオナルド・ダ・ヴィンチ","roman":"LEONARDO DA VINCI","gender":"男性","category":"偉人","symbol":"✦","era":"ルネサンス",
+        "tagline":"一人で深く考え、未知を掘り続ける超越境探究型",
+        "profile":{"leadership":-45,"novelty":100,"logic":100,"social":-65,"structure":-45,"empathy":15,"resilience":20,"independence":100,"idealism":70,"action":-55},
+        "strengths":["圧倒的な好奇心","観察と分析","分野横断の創造力"],
+        "watchouts":["完成より探究を優先しやすい","関心が広がりすぎる"],
+        "jobs":["研究開発","データサイエンス","デザイン","技術企画"],
         "motif":"gear",
     },
     {
-        "name":"ナポレオン","roman":"NAPOLEON BONAPARTE","gender":"男性","symbol":"♛","era":"近代フランス",
-        "tagline":"判断と実行で勝負する高速指揮官",
-        "profile":{"leadership":100,"novelty":65,"logic":70,"social":45,"structure":80,"empathy":-35,"resilience":85,"independence":90,"idealism":30,"action":100},
-        "strengths":["高速意思決定","戦略実行","責任を引き受ける力"],
-        "watchouts":["強引になりやすい","成功体験を過信しやすい"],
-        "jobs":["経営者","営業責任者","プロジェクト統括","危機対応責任者"],
+        "name":"ナポレオン","roman":"NAPOLEON BONAPARTE","gender":"男性","category":"偉人","symbol":"♛","era":"近代フランス",
+        "tagline":"勝つためなら即断即決、組織を強く動かす超指揮型",
+        "profile":{"leadership":100,"novelty":35,"logic":85,"social":55,"structure":95,"empathy":-75,"resilience":100,"independence":95,"idealism":5,"action":100},
+        "strengths":["指揮力","高速意思決定","戦略実行"],
+        "watchouts":["強引になりやすい","勝敗を重視しすぎる"],
+        "jobs":["経営者","事業統括","営業責任者","危機対応責任者"],
         "motif":"crown",
     },
     {
-        "name":"アルベルト・アインシュタイン","roman":"ALBERT EINSTEIN","gender":"男性","symbol":"∑","era":"20世紀",
-        "tagline":"常識を疑い、本質を追う独創的な思索家",
-        "profile":{"leadership":-10,"novelty":90,"logic":100,"social":-35,"structure":5,"empathy":25,"resilience":55,"independence":100,"idealism":75,"action":-20},
-        "strengths":["本質思考","独創性","一人で深く考える力"],
-        "watchouts":["考えが深くなりすぎて初動が遅れる","説明が抽象的になりやすい"],
-        "jobs":["研究者","AI・データ分析","技術アーキテクト","R&D"],
+        "name":"アルベルト・アインシュタイン","roman":"ALBERT EINSTEIN","gender":"男性","category":"偉人","symbol":"∑","era":"20世紀",
+        "tagline":"人混みより思考、本質だけを追い続ける超理論型",
+        "profile":{"leadership":-75,"novelty":85,"logic":100,"social":-100,"structure":-25,"empathy":5,"resilience":25,"independence":100,"idealism":65,"action":-95},
+        "strengths":["本質思考","独創性","深い集中"],
+        "watchouts":["考えすぎて行動が遅れやすい","対人調整を後回しにしやすい"],
+        "jobs":["研究者","AIエンジニア","データ分析","技術アーキテクト"],
         "motif":"orbit",
     },
     {
-        "name":"マハトマ・ガンディー","roman":"MAHATMA GANDHI","gender":"男性","symbol":"☮","era":"20世紀",
-        "tagline":"理念と粘り強さで人を動かす信念型",
-        "profile":{"leadership":65,"novelty":45,"logic":25,"social":55,"structure":55,"empathy":95,"resilience":100,"independence":90,"idealism":100,"action":55},
-        "strengths":["共感力","強い理念","長期的な粘り"],
-        "watchouts":["理想を優先しすぎる","自分にも他者にも高い基準を求めやすい"],
-        "jobs":["社会起業","組織開発","教育","NPO・公共領域"],
+        "name":"マハトマ・ガンディー","roman":"MAHATMA GANDHI","gender":"男性","category":"偉人","symbol":"☮","era":"20世紀",
+        "tagline":"勝敗より理念と人、信念を曲げず耐え抜く超理想型",
+        "profile":{"leadership":30,"novelty":-25,"logic":-15,"social":35,"structure":40,"empathy":100,"resilience":100,"independence":95,"idealism":100,"action":-20},
+        "strengths":["強い共感性","揺るがない理念","精神的な粘り"],
+        "watchouts":["理想を優先しすぎる","自分を追い込みやすい"],
+        "jobs":["社会起業","教育","組織開発","公共領域"],
         "motif":"sun",
     },
     {
-        "name":"スティーブ・ジョブズ","roman":"STEVE JOBS","gender":"男性","symbol":"◉","era":"現代",
-        "tagline":"理想をプロダクトへ変える執念のビジョナリー",
-        "profile":{"leadership":90,"novelty":100,"logic":50,"social":20,"structure":45,"empathy":-40,"resilience":80,"independence":95,"idealism":85,"action":85},
-        "strengths":["ビジョン提示","プロダクト感覚","高い基準でやり切る力"],
-        "watchouts":["要求水準が高くなりすぎる","共感より完成度を優先しやすい"],
-        "jobs":["プロダクトマネージャー","起業家","クリエイティブディレクター","事業開発"],
+        "name":"スティーブ・ジョブズ","roman":"STEVE JOBS","gender":"男性","category":"偉人","symbol":"◉","era":"現代",
+        "tagline":"妥協せず未来像を形にする超ビジョン実装型",
+        "profile":{"leadership":95,"novelty":100,"logic":55,"social":-25,"structure":35,"empathy":-90,"resilience":70,"independence":100,"idealism":95,"action":90},
+        "strengths":["ビジョン形成","革新性","高い完成基準"],
+        "watchouts":["要求が極端になりやすい","他者の感情を置き去りにしやすい"],
+        "jobs":["プロダクトマネージャー","起業家","クリエイティブ責任者","事業開発"],
         "motif":"pixel",
     },
-
     {
-        "name":"卑弥呼","roman":"HIMIKO","gender":"女性","symbol":"☾","era":"弥生時代",
-        "tagline":"象徴性と統率力で集団をまとめる求心力タイプ",
-        "profile":{"leadership":85,"novelty":20,"logic":-20,"social":40,"structure":70,"empathy":35,"resilience":75,"independence":65,"idealism":55,"action":45},
-        "strengths":["求心力","役割を束ねる力","象徴的な発信"],
-        "watchouts":["情報が閉じやすい","周囲から意図が見えにくくなる"],
-        "jobs":["組織リーダー","広報・ブランド","コミュニティ運営","マネジメント"],
+        "name":"アル・カポネ","roman":"AL CAPONE","gender":"男性","category":"歴史的犯罪者","symbol":"♠","era":"20世紀アメリカ",
+        "tagline":"人脈と支配力で局面を動かす超対外・実利型",
+        "profile":{"leadership":95,"novelty":10,"logic":35,"social":100,"structure":50,"empathy":-100,"resilience":85,"independence":65,"idealism":-100,"action":95},
+        "strengths":["対人掌握力","大胆さ","現実的な損得判断"],
+        "watchouts":["目的のため手段を軽視しやすい","共感や倫理を後回しにしやすい"],
+        "jobs":["交渉・営業","危機対応","競争環境の事業推進"],
+        "motif":"spade",
+    },
+    {
+        "name":"ジャック・ザ・リッパー","roman":"JACK THE RIPPER","gender":"男性","category":"歴史的犯罪者","symbol":"?","era":"19世紀ロンドン",
+        "tagline":"集団から離れ、痕跡を隠しながら動く極端な孤立型",
+        "profile":{"leadership":-95,"novelty":25,"logic":65,"social":-100,"structure":55,"empathy":-100,"resilience":70,"independence":100,"idealism":-100,"action":35},
+        "strengths":["単独行動への強さ","周囲に流されにくい","慎重な行動"],
+        "watchouts":["孤立しやすい","共感性や社会規範から極端に離れやすい"],
+        "jobs":["単独で集中する専門職","分析・監視系業務"],
+        "motif":"fog",
+    },
+
+    # ---------------- 女性10人 ----------------
+    {
+        "name":"卑弥呼","roman":"HIMIKO","gender":"女性","category":"偉人","symbol":"☾","era":"弥生時代",
+        "tagline":"合理性より象徴と信念、人をまとめる超神秘統率型",
+        "profile":{"leadership":95,"novelty":-55,"logic":-95,"social":65,"structure":85,"empathy":30,"resilience":80,"independence":70,"idealism":100,"action":5},
+        "strengths":["求心力","象徴的な発信","信念を保つ力"],
+        "watchouts":["論理より直感へ寄りやすい","閉じた判断になりやすい"],
+        "jobs":["コミュニティ運営","ブランド","組織リーダー","広報"],
         "motif":"moon",
     },
     {
-        "name":"紫式部","roman":"MURASAKI SHIKIBU","gender":"女性","symbol":"✒","era":"平安時代",
-        "tagline":"人間観察に優れた、静かな洞察型ストーリーテラー",
-        "profile":{"leadership":-45,"novelty":40,"logic":30,"social":-80,"structure":45,"empathy":90,"resilience":20,"independence":55,"idealism":55,"action":-55},
-        "strengths":["人間観察","文章表現","深い内省"],
-        "watchouts":["考え込みすぎる","対外的な自己主張を控えすぎる"],
-        "jobs":["ライター","UXリサーチャー","編集","コンテンツ企画"],
+        "name":"紫式部","roman":"MURASAKI SHIKIBU","gender":"女性","category":"偉人","symbol":"✒","era":"平安時代",
+        "tagline":"外へ出るより人間を観察し、内面を掘る超内省型",
+        "profile":{"leadership":-100,"novelty":15,"logic":50,"social":-100,"structure":55,"empathy":100,"resilience":-35,"independence":45,"idealism":65,"action":-100},
+        "strengths":["人間観察","深い共感","表現力"],
+        "watchouts":["考え込みやすい","行動開始が遅くなりやすい"],
+        "jobs":["ライター","UXリサーチ","編集","コンテンツ企画"],
         "motif":"ink",
     },
     {
-        "name":"北条政子","roman":"HOJO MASAKO","gender":"女性","symbol":"⛰","era":"鎌倉時代",
-        "tagline":"危機に強く、組織を束ねる実務型リーダー",
-        "profile":{"leadership":90,"novelty":20,"logic":65,"social":50,"structure":80,"empathy":20,"resilience":95,"independence":80,"idealism":35,"action":80},
-        "strengths":["危機対応","組織統率","現実的な判断"],
-        "watchouts":["厳しさが先に出やすい","守りを固めすぎる"],
-        "jobs":["経営管理","PM","オペレーション責任者","管理職"],
+        "name":"北条政子","roman":"HOJO MASAKO","gender":"女性","category":"偉人","symbol":"⛰","era":"鎌倉時代",
+        "tagline":"感情より責任、危機ほど強くなる超実務統率型",
+        "profile":{"leadership":100,"novelty":-60,"logic":75,"social":30,"structure":95,"empathy":-35,"resilience":100,"independence":95,"idealism":-25,"action":90},
+        "strengths":["危機対応","現実的な判断","統率力"],
+        "watchouts":["厳しさが先に出やすい","柔軟な変化を嫌いやすい"],
+        "jobs":["経営管理","PM","オペレーション","管理職"],
         "motif":"mountain",
     },
     {
-        "name":"津田梅子","roman":"TSUDA UMEKO","gender":"女性","symbol":"✧","era":"明治〜昭和",
-        "tagline":"教育で未来を変える、計画的なパイオニア",
-        "profile":{"leadership":55,"novelty":70,"logic":65,"social":20,"structure":85,"empathy":70,"resilience":80,"independence":85,"idealism":95,"action":60},
-        "strengths":["長期的な育成","計画性","社会を変える使命感"],
-        "watchouts":["責任を抱え込みやすい","理想のために無理をしやすい"],
-        "jobs":["教育企画","人材開発","社会事業","研修コンサル"],
-        "motif":"star",
-    },
-    {
-        "name":"与謝野晶子","roman":"YOSANO AKIKO","gender":"女性","symbol":"❀","era":"近代日本",
-        "tagline":"感性と自立心で道を切り開く表現者",
-        "profile":{"leadership":25,"novelty":75,"logic":-15,"social":15,"structure":5,"empathy":70,"resilience":55,"independence":95,"idealism":85,"action":45},
-        "strengths":["表現力","自分の価値観を貫く力","感性から新しい意味を作る力"],
-        "watchouts":["型にはめられる環境が苦手","感情が判断に強く影響することがある"],
-        "jobs":["コピーライター","クリエイター","広報","編集"],
+        "name":"与謝野晶子","roman":"YOSANO AKIKO","gender":"女性","category":"偉人","symbol":"❀","era":"近代日本",
+        "tagline":"計画より感性、自分の価値観を貫く超表現型",
+        "profile":{"leadership":-35,"novelty":95,"logic":-90,"social":5,"structure":-100,"empathy":85,"resilience":25,"independence":100,"idealism":100,"action":20},
+        "strengths":["表現力","独立した価値観","感性の鋭さ"],
+        "watchouts":["感情に強く左右されやすい","細かな管理を嫌いやすい"],
+        "jobs":["クリエイター","コピーライター","編集","広報"],
         "motif":"flower",
     },
     {
-        "name":"クレオパトラ","roman":"CLEOPATRA","gender":"女性","symbol":"♕","era":"古代エジプト",
-        "tagline":"知性と対人力で局面を動かす戦略的ネゴシエーター",
-        "profile":{"leadership":90,"novelty":55,"logic":75,"social":90,"structure":60,"empathy":15,"resilience":80,"independence":85,"idealism":20,"action":75},
-        "strengths":["交渉力","対外コミュニケーション","戦略的判断"],
-        "watchouts":["駆け引きを複雑にしすぎる","成果優先になりやすい"],
-        "jobs":["戦略コンサルタント","渉外","営業・交渉","事業責任者"],
+        "name":"クレオパトラ","roman":"CLEOPATRA","gender":"女性","category":"偉人","symbol":"♕","era":"古代エジプト",
+        "tagline":"知性と社交性を武器に主導権を握る超交渉型",
+        "profile":{"leadership":100,"novelty":35,"logic":90,"social":100,"structure":55,"empathy":-45,"resilience":85,"independence":100,"idealism":-10,"action":80},
+        "strengths":["交渉力","対外戦略","知的判断"],
+        "watchouts":["駆け引きが強くなりやすい","成果を優先しすぎる"],
+        "jobs":["戦略コンサルタント","渉外","営業","事業責任者"],
         "motif":"crown",
     },
     {
-        "name":"ジャンヌ・ダルク","roman":"JOAN OF ARC","gender":"女性","symbol":"✚","era":"中世フランス",
-        "tagline":"強い使命感で突き進む信念アクター",
-        "profile":{"leadership":85,"novelty":35,"logic":-10,"social":45,"structure":25,"empathy":55,"resilience":95,"independence":90,"idealism":100,"action":100},
-        "strengths":["勇気","使命感","圧力下で動く力"],
-        "watchouts":["一直線になりすぎる","慎重な検討を飛ばしやすい"],
-        "jobs":["現場リーダー","社会活動","危機対応","プロジェクト推進"],
+        "name":"ジャンヌ・ダルク","roman":"JOAN OF ARC","gender":"女性","category":"偉人","symbol":"✚","era":"中世フランス",
+        "tagline":"考えるより使命、恐れず一直線に進む超信念行動型",
+        "profile":{"leadership":90,"novelty":5,"logic":-65,"social":35,"structure":-40,"empathy":55,"resilience":100,"independence":100,"idealism":100,"action":100},
+        "strengths":["勇気","使命感","圧倒的な行動力"],
+        "watchouts":["一直線になりやすい","検討を飛ばして動きやすい"],
+        "jobs":["現場リーダー","社会活動","プロジェクト推進","危機対応"],
         "motif":"shield",
     },
     {
-        "name":"マリー・キュリー","roman":"MARIE CURIE","gender":"女性","symbol":"⚛","era":"近代科学",
-        "tagline":"静かな集中力で真理を追う粘り強い研究者",
-        "profile":{"leadership":15,"novelty":85,"logic":100,"social":-55,"structure":85,"empathy":35,"resilience":100,"independence":95,"idealism":70,"action":35},
-        "strengths":["集中力","科学的思考","圧倒的な継続力"],
-        "watchouts":["一人で抱え込みやすい","成果のために休息を後回しにしやすい"],
-        "jobs":["研究開発","データサイエンティスト","品質分析","技術専門職"],
+        "name":"マリー・キュリー","roman":"MARIE CURIE","gender":"女性","category":"偉人","symbol":"⚛","era":"近代科学",
+        "tagline":"交流より研究、規律と論理で積み上げる超集中型",
+        "profile":{"leadership":-55,"novelty":75,"logic":100,"social":-95,"structure":100,"empathy":5,"resilience":100,"independence":100,"idealism":45,"action":-45},
+        "strengths":["科学的思考","集中力","継続力"],
+        "watchouts":["一人で抱え込みやすい","休息を後回しにしやすい"],
+        "jobs":["研究開発","データサイエンス","品質分析","専門職"],
         "motif":"atom",
     },
     {
-        "name":"フローレンス・ナイチンゲール","roman":"FLORENCE NIGHTINGALE","gender":"女性","symbol":"✚","era":"近代英国",
-        "tagline":"共感とデータで現場を変える改善リーダー",
-        "profile":{"leadership":75,"novelty":65,"logic":90,"social":25,"structure":95,"empathy":95,"resilience":90,"independence":85,"idealism":95,"action":80},
-        "strengths":["データ活用","現場改善","共感と合理性の両立"],
-        "watchouts":["使命感から働きすぎる","改善要求が高くなりやすい"],
+        "name":"フローレンス・ナイチンゲール","roman":"FLORENCE NIGHTINGALE","gender":"女性","category":"偉人","symbol":"✚","era":"近代英国",
+        "tagline":"人への共感と数字の両方を極める超改善奉仕型",
+        "profile":{"leadership":65,"novelty":30,"logic":100,"social":-10,"structure":100,"empathy":100,"resilience":90,"independence":85,"idealism":100,"action":65},
+        "strengths":["共感と論理の両立","改善力","計画性"],
+        "watchouts":["使命感で働きすぎる","他者にも改善を求めすぎる"],
         "jobs":["業務改善コンサル","医療・公共","データ分析","PM"],
         "motif":"lamp",
     },
     {
-        "name":"ヘレン・ケラー","roman":"HELEN KELLER","gender":"女性","symbol":"★","era":"20世紀",
-        "tagline":"困難を越え、言葉と行動で社会を動かす発信者",
-        "profile":{"leadership":45,"novelty":55,"logic":35,"social":55,"structure":50,"empathy":100,"resilience":100,"independence":90,"idealism":100,"action":65},
-        "strengths":["強い回復力","共感的発信","社会的使命感"],
-        "watchouts":["使命を背負いすぎる","感情的負荷を抱え込みやすい"],
-        "jobs":["教育・講師","広報・発信","社会課題領域","コミュニティ運営"],
-        "motif":"star",
+        "name":"ボニー・パーカー","roman":"BONNIE PARKER","gender":"女性","category":"歴史的犯罪者","symbol":"♦","era":"20世紀アメリカ",
+        "tagline":"安定より刺激、仲間と一気に走り抜ける超衝動冒険型",
+        "profile":{"leadership":30,"novelty":100,"logic":-55,"social":95,"structure":-100,"empathy":-70,"resilience":30,"independence":75,"idealism":-100,"action":100},
+        "strengths":["大胆さ","即行動","刺激への強さ"],
+        "watchouts":["衝動的になりやすい","長期的な結果を軽視しやすい"],
+        "jobs":["変化の激しい営業","イベント・現場系","即応型業務"],
+        "motif":"diamond",
+    },
+    {
+        "name":"アン・ボニー","roman":"ANNE BONNY","gender":"女性","category":"歴史的犯罪者","symbol":"☠","era":"18世紀",
+        "tagline":"規則より自由、危険でも自分で選ぶ超反骨冒険型",
+        "profile":{"leadership":75,"novelty":100,"logic":-5,"social":55,"structure":-100,"empathy":-25,"resilience":95,"independence":100,"idealism":-45,"action":100},
+        "strengths":["独立心","大胆さ","危機下の行動力"],
+        "watchouts":["ルールを軽視しやすい","危険を取りすぎる"],
+        "jobs":["起業","冒険・現場系","新規開拓","危機対応"],
+        "motif":"pirate",
     },
 ]
 assert len(FIGURES) == 20
@@ -859,16 +861,33 @@ def hash_ip(ip):
 # Scoring
 # ------------------------------------------------------------
 def calculate_scores(answers):
+    """
+    回答済みの質問だけで途中スコアを計算できる。
+    初期の数問だけで極端な値にならないよう、
+    各軸4問まではベイズ的な縮小係数をかける。
+    """
     axis_raw = {a: 0 for a in AXES}
     counts = {a: 0 for a in AXES}
-    for i, q in enumerate(QUESTIONS):
-        base = CHOICE_SCORES[answers[i]]
-        axis_raw[q["axis"]] += base * q["direction"]
+
+    for raw_i, choice in answers.items():
+        i = int(raw_i)
+        if i < 0 or i >= len(QUESTIONS) or choice not in CHOICE_SCORES:
+            continue
+        q = QUESTIONS[i]
+        axis_raw[q["axis"]] += CHOICE_SCORES[choice] * q["direction"]
         counts[q["axis"]] += 1
+
     scores = {}
     for axis in AXES:
-        maximum = counts[axis] * 2
-        scores[axis] = round((axis_raw[axis] / maximum) * 100, 1)
+        count = counts[axis]
+        if count == 0:
+            scores[axis] = 0.0
+            continue
+        maximum = count * 2
+        raw_score = (axis_raw[axis] / maximum) * 100
+        shrink = min(1.0, count / 4.0)
+        scores[axis] = round(raw_score * shrink, 1)
+
     return scores
 
 def distance(user_scores, profile):
@@ -995,39 +1014,172 @@ def match_percent(d):
 
 def calibrated_match_percent(ai_ranked):
     """
-    診断内マッチ度を 90〜99% に正規化する。
-
-    これは心理学的な「真の一致率」ではなく、
-    20人の候補の中で1位人物がどれだけ相対的に優勢だったか、
-    かつ10軸の絶対差がどれだけ小さかったかを組み合わせた
-    「この診断内でのマッチ度」。
-
-    1位と2位の差が大きいほど上がり、
-    1位との絶対距離が近いほど上がる。
+    20タイプ内の相対マッチ度を 94〜100% に変換する。
+    現代の診断コンテンツとして「自分のタイプ感」を感じやすくしつつ、
+    1位と2位の分離度が高い場合のみ100%へ到達する。
+    心理学的な確率ではなく「診断内マッチ度」。
     """
     if not ai_ranked:
-        return 90
+        return 94
 
     top_d, _, _, top_ai = ai_ranked[0]
     second_ai = ai_ranked[1][3] if len(ai_ranked) > 1 else 0.0
 
-    # 1位の絶対的近さ 0..1
     absolute_closeness = max(0.0, min(1.0, 1.0 - top_d / 200.0))
-
-    # 1位と2位の分離度 0..1
-    margin = max(0.0, min(1.0, (top_ai - second_ai) / 0.20))
-
-    # AI総合スコアも補助的に使用
+    margin = max(0.0, min(1.0, (top_ai - second_ai) / 0.10))
     top_strength = max(0.0, min(1.0, top_ai))
 
     quality = (
-        0.45 * absolute_closeness
-        + 0.35 * margin
-        + 0.20 * top_strength
+        0.38 * absolute_closeness
+        + 0.44 * margin
+        + 0.18 * top_strength
     )
 
-    # 必ず90〜99
-    return int(max(90, min(99, round(90 + 9 * quality))))
+    return int(max(94, min(100, round(94 + 6 * quality))))
+
+
+def answered_axis_counts(answers):
+    counts = {a: 0 for a in AXES}
+    for raw_i in answers.keys():
+        i = int(raw_i)
+        if 0 <= i < len(QUESTIONS):
+            counts[QUESTIONS[i]["axis"]] += 1
+    return counts
+
+
+def select_adaptive_questions(answers, used_ids, n=10):
+    """
+    現在の回答から上位候補を推定し、
+    候補同士の差が大きい性格軸を優先して次の質問を選ぶ。
+    そのため、利用者ごとに質問順が変わる。
+    """
+    used = set(int(x) for x in used_ids)
+    remaining = [i for i in range(len(QUESTIONS)) if i not in used]
+
+    if not remaining:
+        return []
+
+    counts = answered_axis_counts(answers)
+
+    # 最初の10問は10軸を1問ずつ測る
+    if len(answers) == 0:
+        picked = []
+        for axis in AXES:
+            ids = [i for i in remaining if QUESTIONS[i]["axis"] == axis]
+            if ids:
+                # 正方向/逆方向が固定化しないよう軸ごとに位置を変える
+                picked.append(ids[len(picked) % len(ids)])
+        return picked[:n]
+
+    scores = calculate_scores(answers)
+    ranked = ai_rank_figures(scores)
+    top_candidates = [row[2] for row in ranked[:4]]
+
+    axis_priority = {}
+    for axis in AXES:
+        vals = [f["profile"][axis] for f in top_candidates]
+        mean = sum(vals) / len(vals)
+        variance = sum((v - mean) ** 2 for v in vals) / len(vals)
+
+        top_gap = 0
+        if len(top_candidates) >= 2:
+            top_gap = abs(
+                top_candidates[0]["profile"][axis]
+                - top_candidates[1]["profile"][axis]
+            )
+
+        under_measured = max(0, 5 - counts[axis]) * 900
+
+        axis_priority[axis] = (
+            variance
+            + (top_gap ** 2) * 0.9
+            + under_measured
+        )
+
+    # 同じ軸ばかりにならないよう、1バッチ最大2問
+    axis_used_in_batch = {a: 0 for a in AXES}
+    remaining.sort(
+        key=lambda i: (
+            axis_priority[QUESTIONS[i]["axis"]],
+            -counts[QUESTIONS[i]["axis"]],
+        ),
+        reverse=True,
+    )
+
+    picked = []
+    for i in remaining:
+        axis = QUESTIONS[i]["axis"]
+        if axis_used_in_batch[axis] >= 2:
+            continue
+        picked.append(i)
+        axis_used_in_batch[axis] += 1
+        if len(picked) >= n:
+            break
+
+    # 足りなければ残りから追加
+    if len(picked) < n:
+        for i in remaining:
+            if i not in picked:
+                picked.append(i)
+            if len(picked) >= n:
+                break
+
+    return picked
+
+
+def adaptive_confidence(answers):
+    """
+    途中終了の判定値。
+    1位と2位の差、1位との絶対距離、全軸の回答量から判断する。
+    """
+    if not answers:
+        return 0.0, None
+
+    scores = calculate_scores(answers)
+    ranked = ai_rank_figures(scores)
+    if not ranked:
+        return 0.0, None
+
+    top_d, _, top_figure, top_ai = ranked[0]
+    second_ai = ranked[1][3] if len(ranked) > 1 else 0.0
+
+    margin = max(0.0, top_ai - second_ai)
+    closeness = max(0.0, min(1.0, 1.0 - top_d / 200.0))
+    counts = answered_axis_counts(answers)
+    coverage = min(counts.values()) / 10.0
+
+    confidence = min(
+        1.0,
+        0.48 * min(1.0, margin / 0.08)
+        + 0.34 * closeness
+        + 0.18 * min(1.0, coverage / 0.4)
+    )
+    return confidence, top_figure
+
+
+def should_finish_adaptive(answers):
+    """
+    最大100問。
+    通常は50問以降、判別が十分なら早期に結果へ進む。
+    """
+    n = len(answers)
+    if n >= 100:
+        return True
+    if n < 50:
+        return False
+
+    confidence, _ = adaptive_confidence(answers)
+
+    if n >= 90:
+        return confidence >= 0.58
+    if n >= 80:
+        return confidence >= 0.64
+    if n >= 70:
+        return confidence >= 0.70
+    if n >= 60:
+        return confidence >= 0.77
+    return confidence >= 0.84
+
 
 def dominant_axes(scores, n=3):
     return sorted(AXES.keys(), key=lambda a: abs(scores[a]), reverse=True)[:n]
@@ -1176,86 +1328,26 @@ def palette_for(figure):
 
 
 CHIBI_PRESETS = {
-    "織田信長": {
-        "hair":"spiky","hair_color":(30,24,30),"robe":(155,28,32),"trim":(235,183,65),
-        "head":"crest","item":"katana","feature":"sharp","accent2":(45,45,55)
-    },
-    "徳川家康": {
-        "hair":"samurai","hair_color":(42,34,28),"robe":(45,102,68),"trim":(225,192,100),
-        "head":"helmet","item":"fan","feature":"calm","accent2":(70,115,78)
-    },
-    "坂本龍馬": {
-        "hair":"messy","hair_color":(48,34,25),"robe":(45,92,150),"trim":(238,219,178),
-        "head":"none","item":"pistol","feature":"smile","accent2":(105,72,42)
-    },
-    "西郷隆盛": {
-        "hair":"short","hair_color":(40,32,25),"robe":(118,75,38),"trim":(225,195,145),
-        "head":"none","item":"dog","feature":"broad","accent2":(80,55,35)
-    },
-    "福沢諭吉": {
-        "hair":"formal","hair_color":(48,43,38),"robe":(68,72,88),"trim":(240,226,195),
-        "head":"book","item":"book","feature":"smart","accent2":(95,75,55)
-    },
-    "レオナルド・ダ・ヴィンチ": {
-        "hair":"long","hair_color":(105,74,52),"robe":(112,70,135),"trim":(230,190,105),
-        "head":"beret","item":"sketch","feature":"gentle","accent2":(85,120,105)
-    },
-    "ナポレオン": {
-        "hair":"short","hair_color":(55,44,36),"robe":(35,58,126),"trim":(225,178,55),
-        "head":"bicorne","item":"saber","feature":"proud","accent2":(205,42,40)
-    },
-    "アルベルト・アインシュタイン": {
-        "hair":"wild","hair_color":(220,220,210),"robe":(72,72,80),"trim":(170,210,235),
-        "head":"none","item":"formula","feature":"wildhair","accent2":(65,105,160)
-    },
-    "マハトマ・ガンディー": {
-        "hair":"bald","hair_color":(80,72,64),"robe":(245,240,222),"trim":(190,145,75),
-        "head":"glasses","item":"staff","feature":"slim","accent2":(220,215,195)
-    },
-    "スティーブ・ジョブズ": {
-        "hair":"short","hair_color":(42,40,38),"robe":(22,22,26),"trim":(180,180,185),
-        "head":"glasses","item":"device","feature":"minimal","accent2":(80,80,85)
-    },
-    "卑弥呼": {
-        "hair":"verylong","hair_color":(38,24,32),"robe":(195,28,32),"trim":(30,150,72),
-        "head":"magatama","item":"mirror","feature":"mystic","accent2":(230,210,165)
-    },
-    "紫式部": {
-        "hair":"verylong","hair_color":(35,25,45),"robe":(126,72,150),"trim":(232,190,218),
-        "head":"flower","item":"scroll","feature":"gentle","accent2":(225,160,195)
-    },
-    "北条政子": {
-        "hair":"long","hair_color":(36,29,29),"robe":(130,46,58),"trim":(220,185,122),
-        "head":"samurai","item":"fan","feature":"strong","accent2":(75,70,75)
-    },
-    "津田梅子": {
-        "hair":"bun","hair_color":(48,36,30),"robe":(42,92,145),"trim":(232,216,180),
-        "head":"ribbon","item":"book","feature":"bright","accent2":(205,80,90)
-    },
-    "与謝野晶子": {
-        "hair":"bob","hair_color":(48,28,32),"robe":(180,55,88),"trim":(245,190,200),
-        "head":"flower","item":"pen","feature":"elegant","accent2":(225,95,135)
-    },
-    "クレオパトラ": {
-        "hair":"egypt","hair_color":(22,20,20),"robe":(28,105,125),"trim":(238,192,55),
-        "head":"crown","item":"ankh","feature":"queen","accent2":(55,160,175)
-    },
-    "ジャンヌ・ダルク": {
-        "hair":"bob","hair_color":(95,66,42),"robe":(92,105,120),"trim":(225,190,78),
-        "head":"armor","item":"flag","feature":"brave","accent2":(65,92,145)
-    },
-    "マリー・キュリー": {
-        "hair":"bun","hair_color":(75,55,46),"robe":(52,84,108),"trim":(155,218,212),
-        "head":"atom","item":"flask","feature":"focused","accent2":(80,175,165)
-    },
-    "フローレンス・ナイチンゲール": {
-        "hair":"bun","hair_color":(76,56,43),"robe":(242,240,222),"trim":(180,128,58),
-        "head":"nurse","item":"lamp","feature":"kind","accent2":(220,160,70)
-    },
-    "ヘレン・ケラー": {
-        "hair":"long","hair_color":(63,48,40),"robe":(82,112,152),"trim":(236,207,125),
-        "head":"ribbon","item":"book","feature":"warm","accent2":(100,145,195)
-    },
+    "織田信長":{"hair":"spiky","hair_color":(30,24,30),"robe":(155,28,32),"trim":(235,183,65),"head":"crest","item":"katana","feature":"sharp","accent2":(45,45,55)},
+    "徳川家康":{"hair":"samurai","hair_color":(42,34,28),"robe":(45,102,68),"trim":(225,192,100),"head":"helmet","item":"fan","feature":"calm","accent2":(70,115,78)},
+    "坂本龍馬":{"hair":"messy","hair_color":(48,34,25),"robe":(45,92,150),"trim":(238,219,178),"head":"none","item":"pistol","feature":"smile","accent2":(105,72,42)},
+    "レオナルド・ダ・ヴィンチ":{"hair":"long","hair_color":(105,74,52),"robe":(112,70,135),"trim":(230,190,105),"head":"beret","item":"sketch","feature":"gentle","accent2":(85,120,105)},
+    "ナポレオン":{"hair":"short","hair_color":(55,44,36),"robe":(35,58,126),"trim":(225,178,55),"head":"bicorne","item":"saber","feature":"proud","accent2":(205,42,40)},
+    "アルベルト・アインシュタイン":{"hair":"wild","hair_color":(220,220,210),"robe":(72,72,80),"trim":(170,210,235),"head":"none","item":"formula","feature":"wildhair","accent2":(65,105,160)},
+    "マハトマ・ガンディー":{"hair":"bald","hair_color":(80,72,64),"robe":(245,240,222),"trim":(190,145,75),"head":"glasses","item":"staff","feature":"slim","accent2":(220,215,195)},
+    "スティーブ・ジョブズ":{"hair":"short","hair_color":(42,40,38),"robe":(22,22,26),"trim":(180,180,185),"head":"glasses","item":"device","feature":"minimal","accent2":(80,80,85)},
+    "アル・カポネ":{"hair":"formal","hair_color":(35,30,28),"robe":(65,65,70),"trim":(205,175,110),"head":"none","item":"fan","feature":"proud","accent2":(125,45,45)},
+    "ジャック・ザ・リッパー":{"hair":"short","hair_color":(30,30,35),"robe":(45,45,55),"trim":(160,160,170),"head":"none","item":"none","feature":"focused","accent2":(80,80,90)},
+    "卑弥呼":{"hair":"verylong","hair_color":(38,24,32),"robe":(195,28,32),"trim":(30,150,72),"head":"magatama","item":"mirror","feature":"mystic","accent2":(230,210,165)},
+    "紫式部":{"hair":"verylong","hair_color":(35,25,45),"robe":(126,72,150),"trim":(232,190,218),"head":"flower","item":"scroll","feature":"gentle","accent2":(225,160,195)},
+    "北条政子":{"hair":"long","hair_color":(36,29,29),"robe":(130,46,58),"trim":(220,185,122),"head":"samurai","item":"fan","feature":"strong","accent2":(75,70,75)},
+    "与謝野晶子":{"hair":"bob","hair_color":(48,28,32),"robe":(180,55,88),"trim":(245,190,200),"head":"flower","item":"pen","feature":"elegant","accent2":(225,95,135)},
+    "クレオパトラ":{"hair":"egypt","hair_color":(22,20,20),"robe":(28,105,125),"trim":(238,192,55),"head":"crown","item":"ankh","feature":"queen","accent2":(55,160,175)},
+    "ジャンヌ・ダルク":{"hair":"bob","hair_color":(95,66,42),"robe":(92,105,120),"trim":(225,190,78),"head":"armor","item":"flag","feature":"brave","accent2":(65,92,145)},
+    "マリー・キュリー":{"hair":"bun","hair_color":(75,55,46),"robe":(52,84,108),"trim":(155,218,212),"head":"atom","item":"flask","feature":"focused","accent2":(80,175,165)},
+    "フローレンス・ナイチンゲール":{"hair":"bun","hair_color":(76,56,43),"robe":(242,240,222),"trim":(180,128,58),"head":"nurse","item":"lamp","feature":"kind","accent2":(220,160,70)},
+    "ボニー・パーカー":{"hair":"bob","hair_color":(75,52,36),"robe":(125,45,55),"trim":(235,190,120),"head":"beret","item":"pistol","feature":"smile","accent2":(200,65,70)},
+    "アン・ボニー":{"hair":"long","hair_color":(130,55,35),"robe":(55,85,120),"trim":(225,175,65),"head":"bicorne","item":"saber","feature":"brave","accent2":(180,65,45)},
 }
 
 def draw_symbolic_portrait(figure, size=900):
@@ -1668,6 +1760,7 @@ DEFAULTS = {
     "result_id": None,
     "result_data": None,
     "feedback_submitted": False,
+    "question_batches": [],
 }
 for key, value in DEFAULTS.items():
     if key not in st.session_state:
@@ -1694,11 +1787,11 @@ st.markdown(f"""
     <div style="font-size:1.45rem;font-weight:800;">{hero_count} 回</div>
   </div>
   <div class="kicker">Historical Personality Test</div>
-  <h1>🏛️ 歴史上の人物 性格診断</h1>
-  <p><b>100の質問から、あなたの思考・行動傾向を10軸で数値化。</b><br>
-  男性10人・女性10人、計20人の歴史的人物プロフィールと比較し、最も近い1人を確定します。</p>
+  <h1>🏛️ AI歴史人物・罪人格診断</h1>
+  <p><b>100の質問以内で、あなたに合った偉人・罪人格を選出。</b><br>
+  回答するたびにAIが性格傾向を更新し、次に聞く質問をあなた専用に選びます。男性10人・女性10人、計20タイプから最も近い1人を確定します。</p>
   <div class="badge-row">
-    <span class="badge">100問</span>
+    <span class="badge">最大100問・適応型</span>
     <span class="badge">5段階回答</span>
     <span class="badge">10性格軸</span>
     <span class="badge">20人物</span>
@@ -1747,7 +1840,7 @@ if st.session_state.completed and st.session_state.result_data:
 
     portrait = portrait_bytes(figure)
 
-    st.success("100問の診断が完了しました。", icon="✅")
+    st.success(f"{data.get('question_count', len(st.session_state.answers))}問でAI判定が確定しました。", icon="✅")
     cimg, ctext = st.columns([0.42, 0.58], vertical_alignment="center")
     with cimg:
         st.image(portrait, use_container_width=True)
@@ -1763,13 +1856,13 @@ if st.session_state.completed and st.session_state.result_data:
         """, unsafe_allow_html=True)
 
     st.caption("人物の数値プロフィールとイラストは、この診断のために作成した独自モデルです。歴史学上・心理学上の確定的評価ではありません。")
-    st.caption("※表示される90〜99%のマッチ度は、20人の候補内での相対的な近さを見やすく正規化した『診断内マッチ度』です。心理学的な一致率を意味するものではありません。")
+    st.caption("※表示される94〜100%のマッチ度は、20タイプ内での相対的な近さと1位の優勢度を、結果を直感的に楽しめるよう正規化した『診断内マッチ度』です。心理学的な確率ではありません。")
 
     render_ad("result")
 
     st.subheader("🤖 AI分析結果")
     st.markdown(
-        "100問の回答を10次元の特徴ベクトルへ変換し、"
+        "最大100問の適応型回答を10次元の特徴ベクトルへ変換し、"
         "3種類の類似度をAI分析エンジンで統合して判定しています。"
     )
     ai1, ai2, ai3, ai4 = st.columns(4)
@@ -1873,7 +1966,7 @@ if st.session_state.completed and st.session_state.result_data:
     st.image(share_card, caption="SNS投稿用の結果カード", use_container_width=True)
 
     share_text = (
-        f"100問の『AI歴史上の人物 性格診断』をやったら、"
+        f"最大100問の『AI歴史人物・罪人格診断』をやったら、"
         f"私は「{figure['name']}」タイプでした！\n"
         f"{figure['tagline']}\n"
         f"マッチ度 {match}%\n"
@@ -1890,7 +1983,12 @@ if st.session_state.completed and st.session_state.result_data:
     )
 
     with st.expander("投稿文を表示・コピー"):
-        st.code(share_text, language=None)
+        st.text_area(
+            "SNS投稿文",
+            value=share_text,
+            height=180,
+            key="share_text_box",
+        )
 
     x_url = f"https://twitter.com/intent/tweet?text={quote(share_text)}&url={quote(APP_URL)}"
     line_url = f"https://social-plugins.line.me/lineit/share?url={quote(APP_URL)}&text={quote(share_text)}"
@@ -1919,15 +2017,19 @@ if st.session_state.completed and st.session_state.result_data:
             {"rank": i+1, "name": f["name"], "match_percent": match_percent(d)}
             for i, (d, _, f) in enumerate(ranked[:5])
         ],
+        "question_count": len(st.session_state.answers),
         "answers": [
             {
-                "no": i+1,
-                "question": QUESTIONS[i]["text"],
-                "axis": AXES[QUESTIONS[i]["axis"]]["name"],
-                "answer": st.session_state.answers[i],
-                "effective_score": CHOICE_SCORES[st.session_state.answers[i]] * QUESTIONS[i]["direction"],
+                "question_id": int(i) + 1,
+                "question": QUESTIONS[int(i)]["text"],
+                "axis": AXES[QUESTIONS[int(i)]["axis"]]["name"],
+                "answer": answer,
+                "effective_score": CHOICE_SCORES[answer] * QUESTIONS[int(i)]["direction"],
             }
-            for i in range(100)
+            for i, answer in sorted(
+                st.session_state.answers.items(),
+                key=lambda x: int(x[0])
+            )
         ],
     }
     st.download_button(
@@ -1982,8 +2084,10 @@ if st.session_state.completed and st.session_state.result_data:
     with st.expander("診断ロジックとプライバシーについて"):
         st.markdown("""
         **AI診断ロジック**
-        - 100問を10軸に10問ずつ割り当てています。
-        - YES/NOで判断しやすい100問を5段階で回答し、-2 / -1 / 0 / +1 / +2 に変換します。
+        - 質問バンクは100問あり、最大100問以内で判定します。
+        - YES/NOで判断しやすい質問を5段階で回答し、-2 / -1 / 0 / +1 / +2 に変換します。
+        - 回答の途中で20タイプを再ランキングし、上位候補を区別しやすい性格軸の質問を次に選びます。
+        - 判別が十分になれば100問を待たずに診断を確定します。
         - 逆転項目は符号を反転し、各軸を -100〜+100 に正規化します。
         - 100回答から10次元の性格特徴ベクトルを生成します。
         - AI分析エンジンが「特徴距離」「コサイン類似度」「軸の極性類似度」をアンサンブルします。
@@ -2006,7 +2110,7 @@ if st.session_state.completed and st.session_state.result_data:
 # ------------------------------------------------------------
 if not st.session_state.started:
     c1, c2, c3, c4 = st.columns(4)
-    c1.metric("質問", "100")
+    c1.metric("質問", "最大100")
     c2.metric("回答", "5択")
     c3.metric("性格軸", "10")
     c4.metric("人物", "20")
@@ -2014,8 +2118,8 @@ if not st.session_state.started:
     st.markdown("""
     <div class="soft-card">
       <h3>🤖 AI分析を使用しています</h3>
-      <p><b>この診断では、100問の回答を10次元の性格特徴ベクトルに変換し、
-      AI分析エンジンが20人の歴史人物モデルとの類似度を比較します。</b></p>
+      <p><b>この診断では、最大100問の回答を10次元の性格特徴ベクトルに変換し、
+      AI分析エンジンが20人の偉人・歴史的犯罪者モデルとの類似度を比較します。</b></p>
       <p>絶対的な特徴の近さ・ベクトル方向・各軸の傾向を組み合わせた
       アンサンブル方式で総合判定し、最も近い人物を1人に確定します。</p>
       <p class="small">ChatGPTなどの外部生成AIへ回答内容を送信する方式ではありません。
@@ -2060,12 +2164,12 @@ if not st.session_state.started:
             st.write(f"**{meta['name']}**：{meta['low']} ←→ {meta['high']}")
     with tab3:
         st.markdown("""
-        1. 100問を5段階で回答  
-        2. 回答を数値へ変換  
-        3. 10の性格軸を -100〜+100 で算出  
-        4. AI分析エンジンが10次元特徴ベクトルを解析  
-        5. 20人全員を3種類の類似度で比較  
-        6. AI総合スコアが最も高い人物を1人に確定  
+        1. 最初の10問で10軸を広く測定  
+        2. 回答ごとに20タイプを仮ランキング  
+        3. 上位候補を最も区別できる質問をAIが次に選択  
+        4. 最大100問まで10問ずつ回答  
+        5. 十分に判別できた時点で早期確定  
+        6. 偉人・歴史的犯罪者20タイプから1人に確定  
         7. 判断理由・仕事・相性・SNS用画像を表示
         """)
 
@@ -2074,7 +2178,7 @@ if not st.session_state.started:
     )
 
     if st.button(
-        "100問の診断を始める",
+        "適応型AI診断を始める",
         type="primary",
         use_container_width=True,
         disabled=not consent,
@@ -2102,111 +2206,183 @@ if not st.session_state.started:
         if TERMS_URL:
             link_cols[1].link_button("利用規約", TERMS_URL, use_container_width=True)
 
-    st.caption("※この診断は自己理解・娯楽を目的とした独自診断です。医療・採用・心理検査などの専門判断には使用しないでください。")
+    st.caption(
+        "※この診断は自己理解・娯楽を目的とした独自診断です。"
+        "歴史的犯罪者タイプは犯罪行為を肯定・美化するものではありません。"
+        "人物の性格数値は史実上の心理診断ではなく、診断用に差を強調した象徴モデルです。"
+    )
     st.stop()
 
+
+def complete_adaptive_diagnosis():
+    scores = calculate_scores(st.session_state.answers)
+    ai_ranked = ai_rank_figures(scores)
+    ranked = [(d, idx, f) for d, idx, f, _ in ai_ranked]
+    winner = ai_ranked[0][2]
+    match = calibrated_match_percent(ai_ranked)
+    ai_details = get_ai_analysis_details(scores, winner)
+    compatible = compatible_figures(winner, 3)
+
+    result_id = str(uuid.uuid4())
+    created_at = datetime.now(timezone.utc).isoformat()
+    ip_hash = hash_ip(get_client_ip())
+
+    answers_payload = {
+        str(i): answer
+        for i, answer in sorted(
+            st.session_state.answers.items(),
+            key=lambda x: int(x[0])
+        )
+    }
+
+    payload = {
+        "id": result_id,
+        "created_at": created_at,
+        "ip_hash": ip_hash,
+        "result_name": winner["name"],
+        "match_percent": match,
+        "scores": scores,
+        "answers": answers_payload,
+    }
+    save_status = save_result(payload)
+
+    st.session_state.result_id = result_id
+    st.session_state.result_data = {
+        "figure": winner,
+        "scores": scores,
+        "ranked": ranked,
+        "compatible": compatible,
+        "match": match,
+        "ai_details": ai_details,
+        "save_status": save_status,
+        "question_count": len(st.session_state.answers),
+    }
+    st.session_state.completed = True
+    st.rerun()
+
+
 # ------------------------------------------------------------
-# Question flow: 10 questions x 10 pages
+# Adaptive question flow: max 100 / 10 questions per page
 # ------------------------------------------------------------
 PER_PAGE = 10
-total_pages = len(QUESTIONS) // PER_PAGE
 page = st.session_state.page
-start = page * PER_PAGE
-end = start + PER_PAGE
+
+if not st.session_state.question_batches:
+    first_batch = select_adaptive_questions(
+        st.session_state.answers,
+        used_ids=set(),
+        n=PER_PAGE,
+    )
+    st.session_state.question_batches = [first_batch]
+
+# Safety if page index gets out of range
+page = min(page, len(st.session_state.question_batches) - 1)
+st.session_state.page = page
+current_ids = st.session_state.question_batches[page]
 
 answered = len(st.session_state.answers)
-st.progress(answered / 100)
-st.markdown(f"**進捗 {answered} / 100問**　｜　ページ **{page+1} / {total_pages}**")
-st.caption("各質問は基本的にYESかNOで判断できます。強さに応じて5段階から選び、迷った場合だけ「どちらともいえない」を選んでください。")
+progress = min(1.0, answered / 100.0)
+st.progress(progress)
 
-with st.form(key=f"form_{page}"):
+confidence, provisional = adaptive_confidence(st.session_state.answers)
+provisional_text = ""
+if answered >= 20:
+    provisional_text = f" ｜ AI判別度 {confidence*100:.0f}%"
+
+st.markdown(
+    f"**回答済み {answered}問 / 最大100問**"
+    f"　｜　ページ **{page+1}**{provisional_text}"
+)
+st.caption(
+    "この診断は適応型です。現在までの回答をAI分析し、"
+    "候補を最もよく見分けられる10問を次に自動選択します。"
+    "そのため、人によって質問の順番や終了する質問数が変わります。"
+)
+
+with st.form(key=f"adaptive_form_{page}"):
     current = {}
-    for i in range(start, end):
-        q = QUESTIONS[i]
+
+    for pos, qid in enumerate(current_ids):
+        q = QUESTIONS[qid]
+        sequence_no = page * PER_PAGE + pos + 1
+
         options = ["選択してください"] + CHOICES
-        existing = st.session_state.answers.get(i)
+        existing = st.session_state.answers.get(qid)
         idx = options.index(existing) if existing in options else 0
 
-        st.markdown(f"### Q{i+1}. {q['text']}")
+        st.markdown(f"### Q{sequence_no}. {q['text']}")
         selected = st.radio(
-            f"Q{i+1} 回答",
+            f"Q{sequence_no} 回答",
             options,
             index=idx,
-            key=f"radio_{i}",
+            key=f"radio_{page}_{qid}",
             label_visibility="collapsed",
         )
-        current[i] = selected
+        current[qid] = selected
         st.divider()
 
     back_col, next_col = st.columns(2)
+
     back = back_col.form_submit_button(
         "← 前の10問",
         use_container_width=True,
         disabled=(page == 0),
     )
-    next_label = "診断結果を見る" if page == total_pages - 1 else "次の10問 →"
+
     nxt = next_col.form_submit_button(
-        next_label,
+        "回答してAI判定を更新 →",
         type="primary",
         use_container_width=True,
     )
 
 if back:
-    for i, ans in current.items():
+    for qid, ans in current.items():
         if ans in CHOICES:
-            st.session_state.answers[i] = ans
-    st.session_state.page = max(0, page-1)
+            st.session_state.answers[qid] = ans
+    st.session_state.page = max(0, page - 1)
     st.rerun()
 
 if nxt:
-    missing = [i+1 for i, ans in current.items() if ans not in CHOICES]
+    missing = [
+        page * PER_PAGE + pos + 1
+        for pos, (qid, ans) in enumerate(current.items())
+        if ans not in CHOICES
+    ]
+
     if missing:
-        st.error("このページに未回答があります：" + "、".join(map(str, missing)))
+        st.error(
+            "このページに未回答があります："
+            + "、".join(map(str, missing))
+        )
     else:
-        for i, ans in current.items():
-            st.session_state.answers[i] = ans
+        for qid, ans in current.items():
+            st.session_state.answers[qid] = ans
 
-        if page < total_pages - 1:
-            st.session_state.page += 1
-            st.rerun()
-        else:
-            if len(st.session_state.answers) != 100:
-                st.error("100問すべての回答を確認できませんでした。前のページを確認してください。")
-            else:
-                scores = calculate_scores(st.session_state.answers)
-                ai_ranked = ai_rank_figures(scores)
-                ranked = [(d, idx, f) for d, idx, f, _ in ai_ranked]
-                winner = ai_ranked[0][2]
-                match = calibrated_match_percent(ai_ranked)
-                ai_details = get_ai_analysis_details(scores, winner)
-                compatible = compatible_figures(winner, 3)
-                result_id = str(uuid.uuid4())
-                created_at = datetime.now(timezone.utc).isoformat()
-                ip_hash = hash_ip(get_client_ip())
+        # Backして回答を変更した場合、未来の質問は作り直す
+        if len(st.session_state.question_batches) > page + 1:
+            st.session_state.question_batches = (
+                st.session_state.question_batches[:page+1]
+            )
 
-                answers_payload = {
-                    str(i): st.session_state.answers[i] for i in range(100)
-                }
-                payload = {
-                    "id": result_id,
-                    "created_at": created_at,
-                    "ip_hash": ip_hash,
-                    "result_name": winner["name"],
-                    "match_percent": match,
-                    "scores": scores,
-                    "answers": answers_payload,
-                }
-                save_status = save_result(payload)
+        if should_finish_adaptive(st.session_state.answers):
+            complete_adaptive_diagnosis()
 
-                st.session_state.result_id = result_id
-                st.session_state.result_data = {
-                    "figure": winner,
-                    "scores": scores,
-                    "ranked": ranked,
-                    "compatible": compatible,
-                    "match": match,
-                    "ai_details": ai_details,
-                    "save_status": save_status,
-                }
-                st.session_state.completed = True
-                st.rerun()
+        used = {
+            qid
+            for batch in st.session_state.question_batches
+            for qid in batch
+        }
+
+        next_batch = select_adaptive_questions(
+            st.session_state.answers,
+            used_ids=used,
+            n=PER_PAGE,
+        )
+
+        if not next_batch or len(st.session_state.answers) >= 100:
+            complete_adaptive_diagnosis()
+
+        st.session_state.question_batches.append(next_batch)
+        st.session_state.page += 1
+        st.rerun()
+
