@@ -58,7 +58,7 @@ def secret(name: str, default=""):
         return default
 
 IP_HASH_SALT = str(secret("IP_HASH_SALT", "CHANGE-ME-BEFORE-PUBLIC-RELEASE"))
-APP_URL = str(secret("APP_URL", "https://historical-personality-ai-gujhfwuepxfoohbvrubhmw.streamlit.app/")).rstrip("/") + "/"
+APP_URL = "https://historical-personality-ai-gujhfwuepxfoohbvrubhmw.streamlit.app/"
 SUPABASE_URL = str(secret("SUPABASE_URL", "")).rstrip("/")
 SUPABASE_KEY = str(secret("SUPABASE_KEY", ""))
 ADS_ENABLED = str(secret("ADS_ENABLED", "false")).lower() in ("1", "true", "yes", "on")
