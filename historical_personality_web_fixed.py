@@ -200,18 +200,18 @@ AXES = {
 }
 
 CHOICES = [
-    "強くそう思わない",
-    "そう思わない",
-    "どちらでもない",
-    "そう思う",
-    "強くそう思う",
+    "まったくそう思わない（NO）",
+    "あまりそう思わない",
+    "どちらともいえない",
+    "ややそう思う",
+    "とてもそう思う（YES）",
 ]
 CHOICE_SCORES = {
-    "強くそう思わない": -2,
-    "そう思わない": -1,
-    "どちらでもない": 0,
-    "そう思う": 1,
-    "強くそう思う": 2,
+    "まったくそう思わない（NO）": -2,
+    "あまりそう思わない": -1,
+    "どちらともいえない": 0,
+    "ややそう思う": 1,
+    "とてもそう思う（YES）": 2,
 }
 
 # ------------------------------------------------------------
@@ -221,124 +221,124 @@ CHOICE_SCORES = {
 # ------------------------------------------------------------
 QUESTION_BANK = {
     "leadership": [
-        ("集団では、自分から方向性を示すことが多い。", 1),
-        ("重要な場面では、自分が決断役になりたい。", 1),
-        ("周囲が迷っていると、自分が先頭に立つことがある。", 1),
-        ("責任の重い役割でも、必要なら引き受けられる。", 1),
-        ("意見が割れたとき、結論をまとめるのが得意だ。", 1),
-        ("自分より他の人に最終判断を任せたいことが多い。", -1),
-        ("リーダー役より、支える役のほうが自然だ。", -1),
-        ("注目を集める立場はできるだけ避けたい。", -1),
-        ("自分の考えを押し出すより、全員に合わせることが多い。", -1),
-        ("大きな決断では、誰かに背中を押してもらいたい。", -1),
+        ("集団では、自分から方針を提案することが多い。", 1),
+        ("人をまとめる役を任されても抵抗がない。", 1),
+        ("迷っている人がいると、自分が決める側に回る。", 1),
+        ("重要な場面では、自分が責任を持って決断したい。", 1),
+        ("周囲を引っ張る立場にやりがいを感じる。", 1),
+        ("最終判断は、できれば他の人に任せたい。", -1),
+        ("先頭に立つより、支える役のほうが楽だ。", -1),
+        ("人前で指示を出すのは避けたい。", -1),
+        ("意見が割れたら、多数派に合わせることが多い。", -1),
+        ("責任の大きい役割はなるべく避けたい。", -1),
     ],
     "novelty": [
-        ("未知のことでも、面白そうなら試してみたい。", 1),
-        ("新しい方法を考えることにワクワクする。", 1),
-        ("多少の失敗リスクがあっても挑戦を選ぶことがある。", 1),
-        ("変化の多い環境を刺激的だと感じる。", 1),
-        ("前例がなくても、合理的なら実行したい。", 1),
-        ("実績のある方法を変えるのはなるべく避けたい。", -1),
-        ("新しい環境より、慣れた環境のほうが安心する。", -1),
-        ("成功確率が読めないことには手を出したくない。", -1),
-        ("大きな変化より、小さな改善を積み重ねたい。", -1),
-        ("斬新さより、確実性を優先することが多い。", -1),
+        ("初めてのことでも、面白そうなら試したい。", 1),
+        ("新しい方法を思いつくと、実際に試したくなる。", 1),
+        ("多少失敗しても、新しい挑戦を選びたい。", 1),
+        ("変化の多い環境のほうが刺激的だ。", 1),
+        ("前例がなくても、良いと思えば実行したい。", 1),
+        ("慣れた方法を変えるのはできるだけ避けたい。", -1),
+        ("未知の環境より、慣れた環境を選びたい。", -1),
+        ("失敗の可能性が高いなら挑戦したくない。", -1),
+        ("大きな変化より、現状維持のほうが安心する。", -1),
+        ("新しさより、確実性を優先することが多い。", -1),
     ],
     "logic": [
-        ("感情より、根拠やデータを優先して判断することが多い。", 1),
-        ("複雑な問題を分解して考えるのが好きだ。", 1),
-        ("結論を出す前に、原因と結果のつながりを確認する。", 1),
-        ("数字や比較材料があると判断しやすい。", 1),
-        ("反対意見でも筋が通っていれば受け入れられる。", 1),
-        ("理屈より、その場の気持ちを大切にして決めることが多い。", -1),
-        ("数字で説明されるより、直感で理解するほうが得意だ。", -1),
-        ("細かな分析をすると、かえって決めにくくなる。", -1),
-        ("論理的に正しくても、人の気持ちに反するなら選びにくい。", -1),
-        ("理由を整理するより、感覚で素早く決めることが多い。", -1),
+        ("判断するとき、感情より根拠を優先する。", 1),
+        ("問題は分解して順番に考えることが多い。", 1),
+        ("数字やデータがあると判断しやすい。", 1),
+        ("結論を出す前に理由を整理する。", 1),
+        ("反対意見でも、筋が通っていれば受け入れられる。", 1),
+        ("理屈より、その場の気持ちで決めることが多い。", -1),
+        ("細かく分析するより、直感で決めたい。", -1),
+        ("数字で説明されると、かえって分かりにくい。", -1),
+        ("論理的に正しくても、人の気持ちを優先したい。", -1),
+        ("理由を考える前に、感覚で答えを出すことが多い。", -1),
     ],
     "social": [
-        ("初対面の人とも比較的すぐ会話できる。", 1),
-        ("人が多い場に行くとエネルギーが出る。", 1),
-        ("自分から人に話しかけることが多い。", 1),
-        ("新しい人脈を作ることに抵抗が少ない。", 1),
-        ("考えを誰かと話しながら整理するのが好きだ。", 1),
-        ("一人で過ごす時間のほうが回復できる。", -1),
-        ("大人数の集まりの後はかなり疲れる。", -1),
-        ("知らない人が多い場所では静かになりやすい。", -1),
-        ("自分の考えは、まず一人で整理したい。", -1),
-        ("広い人間関係より、少数の深い関係を好む。", -1),
+        ("初対面の人にも自分から話しかけられる。", 1),
+        ("人が多い場所に行くと元気になる。", 1),
+        ("新しい人と知り合うのが好きだ。", 1),
+        ("会話しながら考えを整理することが多い。", 1),
+        ("人との交流を増やしたいと思う。", 1),
+        ("一人で過ごすほうが気持ちが回復する。", -1),
+        ("大人数の集まりはかなり疲れる。", -1),
+        ("知らない人が多い場では静かになりやすい。", -1),
+        ("考え事は一人でするほうが好きだ。", -1),
+        ("広い人間関係より、少人数の関係を好む。", -1),
     ],
     "structure": [
-        ("予定や締切を先に決めると動きやすい。", 1),
-        ("大きな目標は、細かな手順に分けて進める。", 1),
-        ("物事を始める前に準備を整えるほうだ。", 1),
-        ("ルールや役割が明確な環境は働きやすい。", 1),
-        ("進捗を確認しながら計画を修正することが多い。", 1),
-        ("予定を細かく決めず、その日の気分で動きたい。", -1),
-        ("締切が近づいてから集中することが多い。", -1),
+        ("予定を決めてから動くほうだ。", 1),
+        ("大きな目標は、細かい手順に分ける。", 1),
+        ("締切よりかなり前から準備することが多い。", 1),
+        ("ルールや役割が明確な環境のほうが働きやすい。", 1),
+        ("進捗を確認しながら計画を修正する。", 1),
+        ("予定を決めず、その日の気分で動きたい。", -1),
+        ("締切直前に集中することが多い。", -1),
         ("計画より、その場の流れを優先したい。", -1),
-        ("整理整頓は必要になったときだけすればよいと思う。", -1),
-        ("準備に時間を使うより、まず始めたい。", -1),
+        ("整理整頓は必要なときだけでよいと思う。", -1),
+        ("準備するより、まず始めるほうだ。", -1),
     ],
     "empathy": [
-        ("相手の立場を想像してから言葉を選ぶことが多い。", 1),
-        ("困っている人を見ると放っておきにくい。", 1),
+        ("話す前に、相手がどう感じるか考える。", 1),
+        ("困っている人を見ると助けたくなる。", 1),
         ("人の表情や声の変化に気づきやすい。", 1),
-        ("正しさだけでなく、相手がどう受け取るかも重視する。", 1),
-        ("誰かの悩みを聞くと、その気持ちを深く考える。", 1),
+        ("正しさだけでなく、相手の気持ちも大切にする。", 1),
+        ("人の悩みを聞くと、自分のことのように考える。", 1),
         ("感情に配慮しすぎると判断が鈍ると思う。", -1),
-        ("人の悩みは本人が解決すべきだと思うことが多い。", -1),
-        ("厳しいことでも、必要ならためらわず言える。", -1),
-        ("人の気持ちより、公平なルールを優先することが多い。", -1),
-        ("共感するより、具体的な解決策を示すほうが得意だ。", -1),
+        ("人の悩みは、基本的に本人が解決すべきだと思う。", -1),
+        ("必要なら、相手が傷ついても厳しいことを言える。", -1),
+        ("人の気持ちより、同じルールを優先したい。", -1),
+        ("共感するより、解決策を示すほうが得意だ。", -1),
     ],
     "resilience": [
-        ("予想外の問題が起きても、比較的冷静でいられる。", 1),
-        ("失敗しても、原因を整理して次に切り替えられる。", 1),
-        ("長期的な目標に粘り強く取り組める。", 1),
-        ("プレッシャーのある場面でも普段に近い判断ができる。", 1),
-        ("批判を受けても、必要以上に引きずらないほうだ。", 1),
-        ("小さな失敗でも長く気になってしまう。", -1),
-        ("予定外の出来事が続くとかなり混乱する。", -1),
+        ("突然問題が起きても、比較的冷静でいられる。", 1),
+        ("失敗しても、切り替えて次に進める。", 1),
+        ("長い期間でも、目標に向かって続けられる。", 1),
+        ("プレッシャーがあっても普段に近い判断ができる。", 1),
+        ("批判されても、必要以上に引きずらない。", 1),
+        ("小さな失敗でも長く気になる。", -1),
+        ("予定外の出来事が続くと混乱しやすい。", -1),
         ("人からどう見られているかを強く気にする。", -1),
-        ("難しい状況が続くと、諦めたくなりやすい。", -1),
-        ("強いプレッシャーの下では判断力が落ちやすい。", -1),
+        ("難しい状況が続くと諦めたくなる。", -1),
+        ("強いプレッシャーがかかると判断しにくくなる。", -1),
     ],
     "independence": [
-        ("周囲と違っても、自分が正しいと思えば意見を言える。", 1),
+        ("周囲と違っても、自分の意見を言える。", 1),
         ("一人でも必要な判断を進められる。", 1),
-        ("他人の評価より、自分の基準を大切にしている。", 1),
-        ("自分で調べて結論を出すことが好きだ。", 1),
-        ("多数派でなくても、自分の信念を維持できる。", 1),
-        ("周囲の意見と違うと、自分の考えに自信がなくなる。", -1),
-        ("決断するときは、できるだけ誰かに確認したい。", -1),
-        ("人から反対されると、考えを変えることが多い。", -1),
-        ("自分だけ別の行動を取るのは避けたい。", -1),
-        ("自分の判断より、経験者の判断に従うほうが安心だ。", -1),
+        ("他人の評価より、自分の基準を大切にする。", 1),
+        ("まず自分で調べてから結論を出したい。", 1),
+        ("多数派でなくても、自分の考えを保てる。", 1),
+        ("周囲と意見が違うと、自信がなくなりやすい。", -1),
+        ("決断する前に、必ず誰かに確認したい。", -1),
+        ("反対されると、自分の意見を変えることが多い。", -1),
+        ("自分だけ違う行動を取るのは避けたい。", -1),
+        ("自分の判断より、経験者の判断に従うほうが安心する。", -1),
     ],
     "idealism": [
-        ("目先の利益より、長期的に意味のあることを選びたい。", 1),
-        ("社会や組織をより良くする理想を持っている。", 1),
-        ("困難でも、価値があると思うことには挑みたい。", 1),
-        ("仕事には収入以外の使命や意味も求めたい。", 1),
-        ("現状に満足せず、より良い未来を構想することが多い。", 1),
-        ("理想より、今すぐ得られる実利を優先することが多い。", -1),
-        ("大きな理念より、目の前の現実対応のほうが大切だ。", -1),
+        ("目先の利益より、長期的な意味を重視する。", 1),
+        ("社会や組織をより良くしたいと思う。", 1),
+        ("困難でも、価値があると思えば挑戦したい。", 1),
+        ("仕事には収入以外の意味も求めたい。", 1),
+        ("今より良い未来をよく想像する。", 1),
+        ("理想より、今すぐ得られる利益を優先する。", -1),
+        ("大きな理念より、目の前の現実対応が大切だと思う。", -1),
         ("世の中を変えるより、自分の生活を安定させたい。", -1),
         ("高い理想は、現実では役に立たないことが多いと思う。", -1),
-        ("意味より、効率や結果を優先して選ぶことが多い。", -1),
+        ("意味より、効率や結果を優先することが多い。", -1),
     ],
     "action": [
-        ("良い案を思いついたら、まず小さく試してみる。", 1),
-        ("考え続けるより、行動しながら修正するほうだ。", 1),
-        ("必要な場面では素早く決断できる。", 1),
+        ("良い案を思いついたら、すぐ小さく試す。", 1),
+        ("考え続けるより、動きながら修正する。", 1),
+        ("必要な場面では、素早く決断できる。", 1),
         ("チャンスだと思ったら、早めに動く。", 1),
         ("準備が完璧でなくても、十分なら始められる。", 1),
-        ("情報が十分そろうまで、行動を待つことが多い。", -1),
+        ("情報が十分そろうまで行動を待ちたい。", -1),
         ("失敗を避けるため、何度も考えてから動く。", -1),
         ("急いで決めるより、時間をかけて検討したい。", -1),
-        ("新しいことは、他の人の様子を見てから始めたい。", -1),
-        ("行動する前に、ほぼ確実な見通しがほしい。", -1),
+        ("新しいことは、他人の様子を見てから始めたい。", -1),
+        ("行動する前に、かなり確実な見通しがほしい。", -1),
     ],
 }
 QUESTIONS = [
@@ -987,8 +987,47 @@ def get_ai_analysis_details(scores, figure):
     }
 
 def match_percent(d):
-    # Theoretical max distance = 200
+    """
+    後方互換用。診断表示では calibrated_match_percent() を使用。
+    """
     return max(0, min(100, round(100 * (1 - d / 200))))
+
+
+def calibrated_match_percent(ai_ranked):
+    """
+    診断内マッチ度を 90〜99% に正規化する。
+
+    これは心理学的な「真の一致率」ではなく、
+    20人の候補の中で1位人物がどれだけ相対的に優勢だったか、
+    かつ10軸の絶対差がどれだけ小さかったかを組み合わせた
+    「この診断内でのマッチ度」。
+
+    1位と2位の差が大きいほど上がり、
+    1位との絶対距離が近いほど上がる。
+    """
+    if not ai_ranked:
+        return 90
+
+    top_d, _, _, top_ai = ai_ranked[0]
+    second_ai = ai_ranked[1][3] if len(ai_ranked) > 1 else 0.0
+
+    # 1位の絶対的近さ 0..1
+    absolute_closeness = max(0.0, min(1.0, 1.0 - top_d / 200.0))
+
+    # 1位と2位の分離度 0..1
+    margin = max(0.0, min(1.0, (top_ai - second_ai) / 0.20))
+
+    # AI総合スコアも補助的に使用
+    top_strength = max(0.0, min(1.0, top_ai))
+
+    quality = (
+        0.45 * absolute_closeness
+        + 0.35 * margin
+        + 0.20 * top_strength
+    )
+
+    # 必ず90〜99
+    return int(max(90, min(99, round(90 + 9 * quality))))
 
 def dominant_axes(scores, n=3):
     return sorted(AXES.keys(), key=lambda a: abs(scores[a]), reverse=True)[:n]
@@ -1080,15 +1119,37 @@ FONT_CANDIDATES = [
     "/usr/share/fonts/opentype/noto/NotoSansCJK-Regular.ttc",
     "/usr/share/fonts/truetype/noto/NotoSansCJK-Bold.ttc",
     "/usr/share/fonts/truetype/noto/NotoSansCJK-Regular.ttc",
+    "/usr/share/fonts/opentype/ipaexfont-gothic/ipaexg.ttf",
     "C:/Windows/Fonts/YuGothB.ttc",
     "C:/Windows/Fonts/meiryob.ttc",
 ]
 
-def font_path():
+FONT_CACHE_DIR = Path(".font_cache")
+FONT_CACHE_FILE = FONT_CACHE_DIR / "NotoSansJP-Bold.ttf"
+
+def ensure_japanese_font():
     for p in FONT_CANDIDATES:
         if Path(p).exists():
-            return p
+            return str(p)
+
+    if FONT_CACHE_FILE.exists():
+        return str(FONT_CACHE_FILE)
+
+    # 最終フォールバック：公開配布されているNoto Sans JPを取得
+    try:
+        FONT_CACHE_DIR.mkdir(parents=True, exist_ok=True)
+        url = "https://raw.githubusercontent.com/google/fonts/main/ofl/notosansjp/NotoSansJP%5Bwght%5D.ttf"
+        r = requests.get(url, timeout=10)
+        if 200 <= r.status_code < 300 and len(r.content) > 100000:
+            FONT_CACHE_FILE.write_bytes(r.content)
+            return str(FONT_CACHE_FILE)
+    except Exception:
+        pass
+
     return None
+
+def font_path():
+    return ensure_japanese_font()
 
 def get_font(size, bold=False):
     fp = font_path()
@@ -1113,162 +1174,167 @@ def palette_for(figure):
     ]
     return palettes[hue_group]
 
+
+CHIBI_PRESETS = {
+    "織田信長": {"hair":"spiky","hair_color":(35,25,25),"robe":(165,32,28),"trim":(235,183,65),"head":"crest"},
+    "徳川家康": {"hair":"samurai","hair_color":(45,36,28),"robe":(50,100,66),"trim":(221,187,105),"head":"helmet"},
+    "坂本龍馬": {"hair":"messy","hair_color":(48,36,28),"robe":(65,98,150),"trim":(235,220,180),"head":"none"},
+    "西郷隆盛": {"hair":"short","hair_color":(42,34,26),"robe":(118,78,42),"trim":(222,190,142),"head":"none"},
+    "福沢諭吉": {"hair":"formal","hair_color":(48,44,38),"robe":(70,72,88),"trim":(237,226,198),"head":"book"},
+    "レオナルド・ダ・ヴィンチ": {"hair":"long","hair_color":(105,77,56),"robe":(116,72,135),"trim":(226,187,105),"head":"beret"},
+    "ナポレオン": {"hair":"short","hair_color":(55,46,38),"robe":(38,62,128),"trim":(220,175,55),"head":"bicorne"},
+    "アルベルト・アインシュタイン": {"hair":"wild","hair_color":(220,220,210),"robe":(76,76,82),"trim":(185,205,232),"head":"none"},
+    "マハトマ・ガンディー": {"hair":"bald","hair_color":(80,72,64),"robe":(240,236,220),"trim":(190,145,75),"head":"glasses"},
+    "スティーブ・ジョブズ": {"hair":"short","hair_color":(46,42,38),"robe":(24,24,28),"trim":(170,170,178),"head":"glasses"},
+    "卑弥呼": {"hair":"verylong","hair_color":(42,25,35),"robe":(195,28,32),"trim":(32,145,72),"head":"magatama"},
+    "紫式部": {"hair":"verylong","hair_color":(38,27,48),"robe":(128,75,150),"trim":(230,190,218),"head":"flower"},
+    "北条政子": {"hair":"long","hair_color":(38,30,30),"robe":(128,48,58),"trim":(220,185,125),"head":"samurai"},
+    "津田梅子": {"hair":"bun","hair_color":(48,37,30),"robe":(42,92,145),"trim":(230,215,180),"head":"ribbon"},
+    "与謝野晶子": {"hair":"bob","hair_color":(48,30,32),"robe":(180,58,88),"trim":(245,190,200),"head":"flower"},
+    "クレオパトラ": {"hair":"egypt","hair_color":(25,22,22),"robe":(30,105,125),"trim":(235,190,55),"head":"crown"},
+    "ジャンヌ・ダルク": {"hair":"bob","hair_color":(95,68,42),"robe":(92,105,120),"trim":(220,190,78),"head":"armor"},
+    "マリー・キュリー": {"hair":"bun","hair_color":(75,58,48),"robe":(55,85,110),"trim":(160,215,210),"head":"atom"},
+    "フローレンス・ナイチンゲール": {"hair":"bun","hair_color":(78,58,45),"robe":(235,235,220),"trim":(175,125,60),"head":"nurse"},
+    "ヘレン・ケラー": {"hair":"long","hair_color":(65,50,42),"robe":(85,115,155),"trim":(235,205,125),"head":"ribbon"},
+}
+
 def draw_symbolic_portrait(figure, size=900):
     """
-    SNSで人物を一目で認識しやすいようにした、
-    少しアニメ調のオリジナル人物イメージ。
-    外部画像は使わずコードで生成する。
+    20人を一目で見分けやすい、人物別デフォルメ調イラスト。
+    外部画像は使わず、髪型・衣装・頭飾り・配色を人物ごとに変える。
     """
+    preset = CHIBI_PRESETS.get(figure["name"], {})
     bg, accent, light = palette_for(figure)
-    img = Image.new("RGB", (size, size), bg)
+
+    hair = preset.get("hair_color", accent)
+    robe = preset.get("robe", accent)
+    trim = preset.get("trim", light)
+    head = preset.get("head", "none")
+    hair_style = preset.get("hair", "short")
+
+    img = Image.new("RGB", (size, size), (250, 247, 239))
     d = ImageDraw.Draw(img)
+    cx = size // 2
 
-    cx = cy = size // 2
+    # card aura
+    d.ellipse([size*.08,size*.06,size*.92,size*.90], fill=(255,250,235), outline=trim, width=max(3,size//180))
+    for k in range(12):
+        ang = 2*math.pi*k/12
+        x1 = cx + math.cos(ang)*size*.37
+        y1 = size*.45 + math.sin(ang)*size*.37
+        x2 = cx + math.cos(ang)*size*.44
+        y2 = size*.45 + math.sin(ang)*size*.44
+        d.line((x1,y1,x2,y2), fill=trim, width=max(3,size//220))
 
-    # 背景：アニメ調の放射・光輪
-    for i in range(10):
-        r = int(size * (0.18 + i * 0.035))
-        tone = tuple(min(255, int(c + i * 2.5)) for c in bg)
-        d.ellipse([cx-r, cy-r, cx+r, cy+r], outline=tone, width=max(2, size//300))
+    # oversized chibi robe/body
+    d.rounded_rectangle([size*.16,size*.58,size*.84,size*.96], radius=int(size*.14), fill=robe, outline=bg, width=max(3,size//220))
+    # sleeves
+    d.ellipse([size*.07,size*.62,size*.34,size*.91], fill=robe)
+    d.ellipse([size*.66,size*.62,size*.93,size*.91], fill=robe)
+    d.polygon([(size*.35,size*.62),(size*.50,size*.82),(size*.65,size*.62),(size*.59,size*.93),(size*.41,size*.93)], fill=trim)
 
-    for k in range(20):
-        ang = 2 * math.pi * k / 20
-        r1 = size * 0.34
-        r2 = size * 0.47
-        x1 = cx + math.cos(ang) * r1
-        y1 = cy + math.sin(ang) * r1
-        x2 = cx + math.cos(ang) * r2
-        y2 = cy + math.sin(ang) * r2
-        d.line((x1, y1, x2, y2), fill=accent, width=max(2, size//280))
+    # neck
+    d.rounded_rectangle([size*.43,size*.50,size*.57,size*.66], radius=int(size*.04), fill=(248,218,178))
 
-    # 肩・衣装
-    d.rounded_rectangle(
-        [size*0.16, size*0.64, size*0.84, size*0.96],
-        radius=int(size*0.13),
-        fill=accent
-    )
-    d.polygon([
-        (size*.34,size*.69),
-        (size*.50,size*.83),
-        (size*.66,size*.69),
-        (size*.60,size*.92),
-        (size*.40,size*.92),
-    ], fill=bg)
+    # face
+    skin = (252,222,180)
+    d.ellipse([size*.28,size*.16,size*.72,size*.61], fill=skin, outline=(55,45,40), width=max(3,size//220))
 
-    # 首
-    d.rounded_rectangle(
-        [size*.43, size*.53, size*.57, size*.70],
-        radius=int(size*.04),
-        fill=light
-    )
-
-    # 顔：やや縦長のアニメ調
-    d.ellipse(
-        [size*.30, size*.17, size*.70, size*.62],
-        fill=light,
-        outline=accent,
-        width=max(2, size//250)
-    )
-
-    motif = figure.get("motif","")
-
-    # 髪 / 冠 / 頭部装飾
-    if motif in ("crown","castle"):
-        d.polygon([
-            (size*.29,size*.31),
-            (size*.37,size*.12),
-            (size*.46,size*.27),
-            (size*.53,size*.10),
-            (size*.61,size*.27),
-            (size*.71,size*.14),
-            (size*.69,size*.35),
-            (size*.31,size*.35),
-        ], fill=accent)
-    elif motif in ("moon","ink","flower","lamp"):
-        d.pieslice(
-            [size*.25,size*.10,size*.75,size*.61],
-            180, 360,
-            fill=accent
-        )
-        # 横髪
-        d.ellipse([size*.25,size*.20,size*.37,size*.52], fill=accent)
-        d.ellipse([size*.63,size*.20,size*.75,size*.52], fill=accent)
+    # hair base by style
+    if hair_style == "bald":
+        pass
+    elif hair_style in ("long","verylong","egypt"):
+        d.pieslice([size*.23,size*.08,size*.77,size*.61],180,360,fill=hair)
+        d.ellipse([size*.20,size*.20,size*.34,size*.70], fill=hair)
+        d.ellipse([size*.66,size*.20,size*.80,size*.70], fill=hair)
+        if hair_style == "verylong":
+            d.rounded_rectangle([size*.21,size*.42,size*.34,size*.83], radius=int(size*.05), fill=hair)
+            d.rounded_rectangle([size*.66,size*.42,size*.79,size*.83], radius=int(size*.05), fill=hair)
+    elif hair_style == "bun":
+        d.pieslice([size*.25,size*.09,size*.75,size*.56],180,360,fill=hair)
+        d.ellipse([size*.42,size*.05,size*.58,size*.20], fill=hair)
+    elif hair_style == "wild":
+        for k in range(11):
+            x = size*(.30 + .04*k)
+            y = size*(.13 + (.02 if k%2 else 0))
+            d.polygon([(x-size*.05,y+size*.09),(x,y-size*.06),(x+size*.05,y+size*.09)], fill=hair)
+    elif hair_style == "spiky":
+        for k in range(9):
+            x = size*(.29 + .052*k)
+            d.polygon([(x-size*.04,size*.27),(x,size*.08),(x+size*.04,size*.27)], fill=hair)
+    elif hair_style == "messy":
+        for k in range(8):
+            x = size*(.30 + .055*k)
+            tip = size*(.09 + .025*(k%3))
+            d.polygon([(x-size*.05,size*.30),(x,tip),(x+size*.05,size*.30)], fill=hair)
+    elif hair_style == "samurai":
+        d.pieslice([size*.27,size*.10,size*.73,size*.55],180,360,fill=hair)
+        d.ellipse([size*.45,size*.07,size*.55,size*.18], fill=hair)
+    elif hair_style == "bob":
+        d.pieslice([size*.25,size*.09,size*.75,size*.59],180,360,fill=hair)
+        d.rounded_rectangle([size*.24,size*.27,size*.35,size*.58], radius=int(size*.04), fill=hair)
+        d.rounded_rectangle([size*.65,size*.27,size*.76,size*.58], radius=int(size*.04), fill=hair)
     else:
-        d.pieslice(
-            [size*.26,size*.09,size*.74,size*.57],
-            180, 360,
-            fill=accent
-        )
-        # 少し束感
-        for off in (-0.12,-0.05,0.04,0.11):
-            x = size*(0.50+off)
-            d.polygon([
-                (x-size*.04,size*.16),
-                (x+size*.02,size*.10),
-                (x+size*.05,size*.25)
-            ], fill=accent)
+        d.pieslice([size*.27,size*.10,size*.73,size*.55],180,360,fill=hair)
 
-    # 眉
-    brow_y = size*.355
-    d.line((size*.385,brow_y,size*.455,brow_y-size*.01), fill=bg, width=max(3,size//180))
-    d.line((size*.545,brow_y-size*.01,size*.615,brow_y), fill=bg, width=max(3,size//180))
+    # anime eyes
+    for ex in (size*.41,size*.59):
+        d.ellipse([ex-size*.060,size*.365,ex+size*.060,size*.435], fill=(255,255,255), outline=(35,30,30), width=max(3,size//250))
+        d.ellipse([ex-size*.025,size*.377,ex+size*.025,size*.427], fill=trim)
+        d.ellipse([ex-size*.010,size*.390,ex+size*.010,size*.420], fill=(25,25,28))
+        d.ellipse([ex-size*.014,size*.380,ex-size*.003,size*.391], fill=(255,255,255))
 
-    # 大きめのアニメ調の目
-    eye_w = size*.055
-    eye_h = size*.030
-    for ex in (size*.42, size*.58):
-        d.ellipse(
-            [ex-eye_w, size*.405-eye_h, ex+eye_w, size*.405+eye_h],
-            fill=(255,255,255),
-            outline=bg,
-            width=max(2,size//300)
-        )
-        iris_r = size*.018
-        d.ellipse(
-            [ex-iris_r,size*.405-iris_r,ex+iris_r,size*.405+iris_r],
-            fill=accent
-        )
-        pupil_r = size*.008
-        d.ellipse(
-            [ex-pupil_r,size*.405-pupil_r,ex+pupil_r,size*.405+pupil_r],
-            fill=bg
-        )
-        shine = size*.004
-        d.ellipse(
-            [ex-size*.008-shine,size*.397-shine,ex-size*.008+shine,size*.397+shine],
-            fill=(255,255,255)
-        )
+    # brows / nose / smile / blush
+    d.line((size*.36,size*.335,size*.45,size*.325), fill=(45,35,32), width=max(3,size//220))
+    d.line((size*.55,size*.325,size*.64,size*.335), fill=(45,35,32), width=max(3,size//220))
+    d.line((size*.50,size*.41,size*.49,size*.465), fill=(170,120,90), width=max(2,size//300))
+    d.arc([size*.43,size*.45,size*.57,size*.53], 15,165, fill=(145,80,65), width=max(3,size//250))
+    blush=(245,145,145)
+    d.ellipse([size*.32,size*.43,size*.39,size*.46], fill=blush)
+    d.ellipse([size*.61,size*.43,size*.68,size*.46], fill=blush)
 
-    # 鼻・口
-    d.line(
-        (size*.50,size*.425,size*.49,size*.485),
-        fill=accent,
-        width=max(2,size//300)
-    )
-    d.arc(
-        [size*.43,size*.47,size*.57,size*.55],
-        15, 165,
-        fill=accent,
-        width=max(3,size//260)
-    )
+    # head accessories per figure
+    if head == "crest":
+        d.polygon([(size*.43,size*.15),(size*.50,size*.05),(size*.57,size*.15),(size*.50,size*.12)], fill=trim)
+    elif head == "helmet":
+        d.arc([size*.26,size*.07,size*.74,size*.39],180,360,fill=trim,width=max(10,size//45))
+    elif head == "beret":
+        d.ellipse([size*.32,size*.07,size*.68,size*.19], fill=robe)
+    elif head == "bicorne":
+        d.polygon([(size*.30,size*.13),(size*.50,size*.04),(size*.70,size*.13),(size*.50,size*.19)], fill=(32,35,55))
+        d.line((size*.34,size*.13,size*.66,size*.13), fill=trim, width=max(4,size//180))
+    elif head == "glasses":
+        d.ellipse([size*.33,size*.35,size*.47,size*.44], outline=(40,40,45), width=max(3,size//230))
+        d.ellipse([size*.53,size*.35,size*.67,size*.44], outline=(40,40,45), width=max(3,size//230))
+        d.line((size*.47,size*.395,size*.53,size*.395), fill=(40,40,45), width=max(3,size//230))
+    elif head == "magatama":
+        # red side ornaments + green leaves inspired by ancient-Japan motif
+        d.ellipse([size*.23,size*.17,size*.32,size*.28], fill=(210,28,25), outline=(90,20,20), width=max(2,size//280))
+        d.ellipse([size*.68,size*.17,size*.77,size*.28], fill=(210,28,25), outline=(90,20,20), width=max(2,size//280))
+        d.polygon([(size*.22,size*.19),(size*.12,size*.14),(size*.20,size*.24)], fill=(32,130,55))
+        d.polygon([(size*.78,size*.19),(size*.88,size*.14),(size*.80,size*.24)], fill=(32,130,55))
+    elif head == "flower":
+        d.ellipse([size*.25,size*.15,size*.30,size*.20], fill=(240,115,150))
+        d.ellipse([size*.29,size*.13,size*.34,size*.19], fill=(245,155,180))
+    elif head == "ribbon":
+        d.polygon([(size*.28,size*.16),(size*.20,size*.11),(size*.24,size*.22)], fill=trim)
+        d.polygon([(size*.72,size*.16),(size*.80,size*.11),(size*.76,size*.22)], fill=trim)
+    elif head == "crown":
+        d.polygon([(size*.34,size*.17),(size*.38,size*.06),(size*.46,size*.15),(size*.50,size*.04),(size*.55,size*.15),(size*.63,size*.06),(size*.67,size*.17)], fill=trim)
+    elif head == "armor":
+        d.arc([size*.24,size*.06,size*.76,size*.38],180,360,fill=(125,130,140),width=max(8,size//55))
+    elif head == "nurse":
+        d.polygon([(size*.41,size*.12),(size*.59,size*.12),(size*.56,size*.20),(size*.44,size*.20)], fill=(250,250,245), outline=trim)
+    elif head == "atom":
+        for off in (-1,0,1):
+            d.ellipse([size*(.43+off*.015),size*.09,size*(.57+off*.015),size*.18], outline=trim, width=max(2,size//300))
 
-    # 頬ハイライト
-    blush = tuple(min(255, c + 35) for c in accent)
-    d.arc([size*.34,size*.44,size*.43,size*.50], 190, 340, fill=blush, width=max(2,size//320))
-    d.arc([size*.57,size*.44,size*.66,size*.50], 200, 350, fill=blush, width=max(2,size//320))
-
-    # 胸の人物シンボル
-    d.ellipse(
-        [size*.38,size*.73,size*.62,size*.97],
-        fill=bg,
-        outline=light,
-        width=max(3,size//220)
-    )
-    sym_font = get_font(int(size*.105), bold=True)
+    # symbolic medallion
+    d.ellipse([size*.40,size*.73,size*.60,size*.93], fill=(250,246,235), outline=trim, width=max(3,size//200))
+    sf = get_font(int(size*.085), bold=True)
     sym = figure["symbol"]
-    bbox = d.textbbox((0,0), sym, font=sym_font)
-    tw, th = bbox[2]-bbox[0], bbox[3]-bbox[1]
-    d.text((cx-tw/2,size*.845-th/2), sym, font=sym_font, fill=light)
+    bb = d.textbbox((0,0), sym, font=sf)
+    d.text((cx-(bb[2]-bb[0])/2,size*.82-(bb[3]-bb[1])/2), sym, font=sf, fill=robe)
 
     return img
 
@@ -1282,99 +1348,83 @@ def fit_text(draw, text, max_width, start_size, min_size=20):
 
 def make_share_card(figure, scores, match):
     """
-    SNSで一目見ただけで結果人物が分かることを最優先した結果カード。
-    「あなたは○○タイプ」を最大文字で表示し、人物イラストも大きく配置。
+    SNSで一瞬で人物名が伝わる結果カード。
+    日本語を最優先で大きく表示する。
     """
     W, H = 1200, 1500
     bg, accent, light = palette_for(figure)
-    img = Image.new("RGB", (W, H), (246, 243, 236))
+    img = Image.new("RGB", (W,H), (255,250,239))
     d = ImageDraw.Draw(img)
 
-    # 外枠
-    d.rounded_rectangle(
-        [38, 38, W-38, H-38],
-        radius=52,
-        fill=bg
-    )
+    # gold border
+    d.rounded_rectangle([18,18,W-18,H-18], radius=40, fill=(255,250,239), outline=(190,135,30), width=8)
 
-    # 上部ラベル
-    top_font = get_font(30, bold=True)
-    d.text((76, 70), "AI HISTORICAL PERSONALITY", font=top_font, fill=accent)
+    # red title ribbon
+    d.rounded_rectangle([105,55,1095,165], radius=34, fill=(178,20,20))
+    title_font = get_font(48, bold=True)
+    title = "AI歴史人物性格診断"
+    tb = d.textbbox((0,0),title,font=title_font)
+    d.text(((W-(tb[2]-tb[0]))/2,80),title,font=title_font,fill=(255,255,255))
 
-    # 「あなたは」を大きく
-    you_font = get_font(60, bold=True)
-    you_text = "あなたは"
-    ybox = d.textbbox((0,0), you_text, font=you_font)
-    d.text(((W-(ybox[2]-ybox[0]))/2, 125), you_text, font=you_font, fill=light)
+    # huge "あなたは"
+    you_font = get_font(72, bold=True)
+    yt = "あなたは"
+    yb = d.textbbox((0,0),yt,font=you_font)
+    d.text(((W-(yb[2]-yb[0]))/2,190),yt,font=you_font,fill=(35,28,24))
 
-    # 人物名を超大きく表示
-    type_text = f"{figure['name']}タイプ"
-    type_font = fit_text(d, type_text, 1050, 118, 72)
-    tbox = d.textbbox((0,0), type_text, font=type_font)
-    d.text(
-        ((W-(tbox[2]-tbox[0]))/2, 205),
-        type_text,
-        font=type_font,
-        fill=accent
-    )
+    # giant result type
+    result_text = f"{figure['name']}タイプ！"
+    result_font = fit_text(d,result_text,1080,132,72)
+    rb = d.textbbox((0,0),result_text,font=result_font)
+    # white outline for legibility
+    rx=(W-(rb[2]-rb[0]))/2
+    ry=280
+    for dx,dy in [(-4,0),(4,0),(0,-4),(0,4),(-3,-3),(3,3),(-3,3),(3,-3)]:
+        d.text((rx+dx,ry+dy),result_text,font=result_font,fill=(255,255,255))
+    d.text((rx,ry),result_text,font=result_font,fill=(190,24,20))
 
-    # 人物イラストを大きく
-    portrait = draw_symbolic_portrait(figure, 900)
-    portrait = portrait.resize((720, 720))
-    img.paste(portrait, (240, 350))
+    # chibi portrait
+    portrait = draw_symbolic_portrait(figure, 900).resize((590,590))
+    img.paste(portrait,(585,445))
 
-    # キャッチコピー
-    tagline = figure["tagline"]
-    tag_font = get_font(36, bold=True)
-    lines = []
-    current = ""
-    for ch in tagline:
-        trial = current + ch
-        box = d.textbbox((0,0), trial, font=tag_font)
-        if box[2]-box[0] > 980 and current:
-            lines.append(current)
-            current = ch
-        else:
-            current = trial
-    if current:
-        lines.append(current)
+    # match panel left
+    d.rounded_rectangle([55,520,560,890], radius=32, fill=(169,25,20), outline=(210,155,45), width=5)
+    match_label=get_font(44,bold=True)
+    d.text((125,555),"診断内マッチ度",font=match_label,fill=(255,245,220))
+    match_font=get_font(150,bold=True)
+    mt=f"{match}%"
+    mb=d.textbbox((0,0),mt,font=match_font)
+    d.text((310-(mb[2]-mb[0])/2,635),mt,font=match_font,fill=(255,220,90))
 
-    y = 1095
-    for line in lines[:2]:
-        box = d.textbbox((0,0), line, font=tag_font)
-        d.text(
-            ((W-(box[2]-box[0]))/2, y),
-            line,
-            font=tag_font,
-            fill=(235,232,225)
-        )
-        y += 52
+    # tagline
+    d.rounded_rectangle([55,925,1145,1035],radius=25,fill=(255,255,250),outline=(205,155,55),width=4)
+    tag_font=fit_text(d,figure["tagline"],1000,40,28)
+    tg=d.textbbox((0,0),figure["tagline"],font=tag_font)
+    d.text(((W-(tg[2]-tg[0]))/2,955),figure["tagline"],font=tag_font,fill=(45,35,30))
 
-    # マッチ度
-    d.rounded_rectangle(
-        [280, 1230, 920, 1365],
-        radius=60,
-        fill=accent
-    )
-    match_label_font = get_font(32, bold=True)
-    match_num_font = get_font(72, bold=True)
+    # top 3 strongest axes
+    daxes=dominant_axes(scores,3)
+    d.rounded_rectangle([55,1065,1145,1315],radius=28,fill=(255,252,242),outline=(205,155,55),width=4)
+    secfont=get_font(42,bold=True)
+    d.text((90,1090),"あなたの特徴 TOP3",font=secfont,fill=(155,25,20))
+    rowfont=get_font(38,bold=True)
+    y=1155
+    for idx,a in enumerate(daxes,1):
+        meta=AXES[a]
+        side=meta["high"] if scores[a]>=0 else meta["low"]
+        line=f"{idx}. {meta['name']}  {scores[a]:+.0f}  /  {side}"
+        d.text((100,y),line,font=rowfont,fill=(45,35,30))
+        y+=58
 
-    d.text((355, 1265), "AI MATCH", font=match_label_font, fill=bg)
-    d.text((650, 1240), f"{match}%", font=match_num_font, fill=bg)
+    # footer
+    d.rounded_rectangle([55,1350,1145,1440],radius=24,fill=(178,20,20))
+    footer_font=get_font(38,bold=True)
+    footer="結果をSNSでシェアしよう！  #歴史上の人物性格診断"
+    fb=d.textbbox((0,0),footer,font=footer_font)
+    d.text(((W-(fb[2]-fb[0]))/2,1374),footer,font=footer_font,fill=(255,255,255))
 
-    # フッター
-    footer = "#歴史上の人物性格診断"
-    footer_font = get_font(30, bold=True)
-    fbox = d.textbbox((0,0), footer, font=footer_font)
-    d.text(
-        ((W-(fbox[2]-fbox[0]))/2, 1408),
-        footer,
-        font=footer_font,
-        fill=light
-    )
-
-    bio = io.BytesIO()
-    img.save(bio, format="PNG", optimize=True)
+    bio=io.BytesIO()
+    img.save(bio,format="PNG",optimize=True)
     return bio.getvalue()
 
 def portrait_bytes(figure):
@@ -1601,6 +1651,7 @@ if st.session_state.completed and st.session_state.result_data:
         """, unsafe_allow_html=True)
 
     st.caption("人物の数値プロフィールとイラストは、この診断のために作成した独自モデルです。歴史学上・心理学上の確定的評価ではありません。")
+    st.caption("※表示される90〜99%のマッチ度は、20人の候補内での相対的な近さを見やすく正規化した『診断内マッチ度』です。心理学的な一致率を意味するものではありません。")
 
     render_ad("result")
 
@@ -1610,7 +1661,7 @@ if st.session_state.completed and st.session_state.result_data:
         "3種類の類似度をAI分析エンジンで統合して判定しています。"
     )
     ai1, ai2, ai3, ai4 = st.columns(4)
-    ai1.metric("AI総合一致度", f"{ai_details['total']:.1f}%")
+    ai1.metric("AI分析スコア", f"{ai_details['total']:.1f}%")
     ai2.metric("特徴距離", f"{ai_details['distance_similarity']:.1f}%")
     ai3.metric("方向類似度", f"{ai_details['cosine_similarity']:.1f}%")
     ai4.metric("軸傾向一致", f"{ai_details['polarity_similarity']:.1f}%")
@@ -1786,7 +1837,7 @@ if st.session_state.completed and st.session_state.result_data:
         st.markdown("""
         **AI診断ロジック**
         - 100問を10軸に10問ずつ割り当てています。
-        - 5段階回答を -2 / -1 / 0 / +1 / +2 に変換します。
+        - YES/NOで判断しやすい100問を5段階で回答し、-2 / -1 / 0 / +1 / +2 に変換します。
         - 逆転項目は符号を反転し、各軸を -100〜+100 に正規化します。
         - 100回答から10次元の性格特徴ベクトルを生成します。
         - AI分析エンジンが「特徴距離」「コサイン類似度」「軸の極性類似度」をアンサンブルします。
@@ -1910,7 +1961,7 @@ end = start + PER_PAGE
 answered = len(st.session_state.answers)
 st.progress(answered / 100)
 st.markdown(f"**進捗 {answered} / 100問**　｜　ページ **{page+1} / {total_pages}**")
-st.caption("迷った場合は「どちらでもない」を選んでください。考えすぎず、普段の自分に近い回答がおすすめです。")
+st.caption("各質問は基本的にYESかNOで判断できます。強さに応じて5段階から選び、迷った場合だけ「どちらともいえない」を選んでください。")
 
 with st.form(key=f"form_{page}"):
     current = {}
@@ -1970,7 +2021,7 @@ if nxt:
                 ai_ranked = ai_rank_figures(scores)
                 ranked = [(d, idx, f) for d, idx, f, _ in ai_ranked]
                 winner = ai_ranked[0][2]
-                match = round(ai_ranked[0][3] * 100)
+                match = calibrated_match_percent(ai_ranked)
                 ai_details = get_ai_analysis_details(scores, winner)
                 compatible = compatible_figures(winner, 3)
                 result_id = str(uuid.uuid4())
