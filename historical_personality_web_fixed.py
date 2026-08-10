@@ -1114,69 +1114,161 @@ def palette_for(figure):
     return palettes[hue_group]
 
 def draw_symbolic_portrait(figure, size=900):
+    """
+    SNSで人物を一目で認識しやすいようにした、
+    少しアニメ調のオリジナル人物イメージ。
+    外部画像は使わずコードで生成する。
+    """
     bg, accent, light = palette_for(figure)
     img = Image.new("RGB", (size, size), bg)
     d = ImageDraw.Draw(img)
 
-    # background concentric motifs
-    for i in range(7):
-        margin = 50 + i*46
-        alpha_color = tuple(min(255, c + i*3) for c in bg)
-        d.ellipse([margin, margin, size-margin, size-margin], outline=alpha_color, width=2)
+    cx = cy = size // 2
 
-    # rays
-    cx = cy = size//2
-    for k in range(16):
-        ang = 2*math.pi*k/16
-        r1, r2 = size*0.31, size*0.46
-        x1, y1 = cx + math.cos(ang)*r1, cy + math.sin(ang)*r1
-        x2, y2 = cx + math.cos(ang)*r2, cy + math.sin(ang)*r2
-        d.line((x1,y1,x2,y2), fill=accent, width=3)
+    # 背景：アニメ調の放射・光輪
+    for i in range(10):
+        r = int(size * (0.18 + i * 0.035))
+        tone = tuple(min(255, int(c + i * 2.5)) for c in bg)
+        d.ellipse([cx-r, cy-r, cx+r, cy+r], outline=tone, width=max(2, size//300))
 
-    # shoulders
+    for k in range(20):
+        ang = 2 * math.pi * k / 20
+        r1 = size * 0.34
+        r2 = size * 0.47
+        x1 = cx + math.cos(ang) * r1
+        y1 = cy + math.sin(ang) * r1
+        x2 = cx + math.cos(ang) * r2
+        y2 = cy + math.sin(ang) * r2
+        d.line((x1, y1, x2, y2), fill=accent, width=max(2, size//280))
+
+    # 肩・衣装
     d.rounded_rectangle(
-        [size*0.20, size*0.64, size*0.80, size*0.93],
-        radius=int(size*.11), fill=accent
+        [size*0.16, size*0.64, size*0.84, size*0.96],
+        radius=int(size*0.13),
+        fill=accent
+    )
+    d.polygon([
+        (size*.34,size*.69),
+        (size*.50,size*.83),
+        (size*.66,size*.69),
+        (size*.60,size*.92),
+        (size*.40,size*.92),
+    ], fill=bg)
+
+    # 首
+    d.rounded_rectangle(
+        [size*.43, size*.53, size*.57, size*.70],
+        radius=int(size*.04),
+        fill=light
     )
 
-    # neck
-    d.rounded_rectangle(
-        [size*0.43, size*0.52, size*0.57, size*0.70],
-        radius=int(size*.04), fill=light
+    # 顔：やや縦長のアニメ調
+    d.ellipse(
+        [size*.30, size*.17, size*.70, size*.62],
+        fill=light,
+        outline=accent,
+        width=max(2, size//250)
     )
 
-    # face
-    d.ellipse([size*.31,size*.19,size*.69,size*.61], fill=light)
-
-    # stylized hair/headwear depends on motif
     motif = figure.get("motif","")
+
+    # 髪 / 冠 / 頭部装飾
     if motif in ("crown","castle"):
         d.polygon([
-            (size*.30,size*.30),(size*.38,size*.16),(size*.46,size*.29),
-            (size*.54,size*.13),(size*.62,size*.29),(size*.70,size*.18),
-            (size*.69,size*.37),(size*.31,size*.37),
+            (size*.29,size*.31),
+            (size*.37,size*.12),
+            (size*.46,size*.27),
+            (size*.53,size*.10),
+            (size*.61,size*.27),
+            (size*.71,size*.14),
+            (size*.69,size*.35),
+            (size*.31,size*.35),
         ], fill=accent)
     elif motif in ("moon","ink","flower","lamp"):
-        d.arc([size*.27,size*.14,size*.73,size*.60], 175, 370, fill=accent, width=int(size*.09))
-        d.ellipse([size*.28,size*.18,size*.38,size*.34], fill=accent)
-        d.ellipse([size*.62,size*.18,size*.72,size*.34], fill=accent)
+        d.pieslice(
+            [size*.25,size*.10,size*.75,size*.61],
+            180, 360,
+            fill=accent
+        )
+        # 横髪
+        d.ellipse([size*.25,size*.20,size*.37,size*.52], fill=accent)
+        d.ellipse([size*.63,size*.20,size*.75,size*.52], fill=accent)
     else:
-        d.arc([size*.27,size*.13,size*.73,size*.58], 180, 360, fill=accent, width=int(size*.10))
+        d.pieslice(
+            [size*.26,size*.09,size*.74,size*.57],
+            180, 360,
+            fill=accent
+        )
+        # 少し束感
+        for off in (-0.12,-0.05,0.04,0.11):
+            x = size*(0.50+off)
+            d.polygon([
+                (x-size*.04,size*.16),
+                (x+size*.02,size*.10),
+                (x+size*.05,size*.25)
+            ], fill=accent)
 
-    # eyes / nose / mouth
-    eye_r = size*.012
-    for ex in (size*.43,size*.57):
-        d.ellipse([ex-eye_r,size*.39-eye_r,ex+eye_r,size*.39+eye_r], fill=bg)
-    d.line((size*.50,size*.41,size*.49,size*.48), fill=accent, width=max(2,int(size*.006)))
-    d.arc([size*.43,size*.45,size*.57,size*.54], 15, 165, fill=accent, width=max(2,int(size*.006)))
+    # 眉
+    brow_y = size*.355
+    d.line((size*.385,brow_y,size*.455,brow_y-size*.01), fill=bg, width=max(3,size//180))
+    d.line((size*.545,brow_y-size*.01,size*.615,brow_y), fill=bg, width=max(3,size//180))
 
-    # motif badge
-    d.ellipse([size*.38,size*.72,size*.62,size*.96], fill=bg, outline=light, width=4)
-    sym_font = get_font(int(size*.10), bold=True)
+    # 大きめのアニメ調の目
+    eye_w = size*.055
+    eye_h = size*.030
+    for ex in (size*.42, size*.58):
+        d.ellipse(
+            [ex-eye_w, size*.405-eye_h, ex+eye_w, size*.405+eye_h],
+            fill=(255,255,255),
+            outline=bg,
+            width=max(2,size//300)
+        )
+        iris_r = size*.018
+        d.ellipse(
+            [ex-iris_r,size*.405-iris_r,ex+iris_r,size*.405+iris_r],
+            fill=accent
+        )
+        pupil_r = size*.008
+        d.ellipse(
+            [ex-pupil_r,size*.405-pupil_r,ex+pupil_r,size*.405+pupil_r],
+            fill=bg
+        )
+        shine = size*.004
+        d.ellipse(
+            [ex-size*.008-shine,size*.397-shine,ex-size*.008+shine,size*.397+shine],
+            fill=(255,255,255)
+        )
+
+    # 鼻・口
+    d.line(
+        (size*.50,size*.425,size*.49,size*.485),
+        fill=accent,
+        width=max(2,size//300)
+    )
+    d.arc(
+        [size*.43,size*.47,size*.57,size*.55],
+        15, 165,
+        fill=accent,
+        width=max(3,size//260)
+    )
+
+    # 頬ハイライト
+    blush = tuple(min(255, c + 35) for c in accent)
+    d.arc([size*.34,size*.44,size*.43,size*.50], 190, 340, fill=blush, width=max(2,size//320))
+    d.arc([size*.57,size*.44,size*.66,size*.50], 200, 350, fill=blush, width=max(2,size//320))
+
+    # 胸の人物シンボル
+    d.ellipse(
+        [size*.38,size*.73,size*.62,size*.97],
+        fill=bg,
+        outline=light,
+        width=max(3,size//220)
+    )
+    sym_font = get_font(int(size*.105), bold=True)
     sym = figure["symbol"]
     bbox = d.textbbox((0,0), sym, font=sym_font)
     tw, th = bbox[2]-bbox[0], bbox[3]-bbox[1]
-    d.text((cx-tw/2,size*.84-th/2), sym, font=sym_font, fill=light)
+    d.text((cx-tw/2,size*.845-th/2), sym, font=sym_font, fill=light)
 
     return img
 
@@ -1189,72 +1281,97 @@ def fit_text(draw, text, max_width, start_size, min_size=20):
     return get_font(min_size, bold=True)
 
 def make_share_card(figure, scores, match):
+    """
+    SNSで一目見ただけで結果人物が分かることを最優先した結果カード。
+    「あなたは○○タイプ」を最大文字で表示し、人物イラストも大きく配置。
+    """
     W, H = 1200, 1500
     bg, accent, light = palette_for(figure)
-    img = Image.new("RGB", (W,H), (246,243,236))
+    img = Image.new("RGB", (W, H), (246, 243, 236))
     d = ImageDraw.Draw(img)
 
-    # main dark panel
-    d.rounded_rectangle([45,45,W-45,H-45], radius=48, fill=bg)
+    # 外枠
+    d.rounded_rectangle(
+        [38, 38, W-38, H-38],
+        radius=52,
+        fill=bg
+    )
 
-    # decorative lines
-    for i in range(5):
-        x = 70 + i*235
-        d.line((x,80,x+150,80), fill=accent, width=3)
+    # 上部ラベル
+    top_font = get_font(30, bold=True)
+    d.text((76, 70), "AI HISTORICAL PERSONALITY", font=top_font, fill=accent)
 
-    small = get_font(34, bold=True)
-    body = get_font(30)
-    score_font = get_font(68, bold=True)
+    # 「あなたは」を大きく
+    you_font = get_font(60, bold=True)
+    you_text = "あなたは"
+    ybox = d.textbbox((0,0), you_text, font=you_font)
+    d.text(((W-(ybox[2]-ybox[0]))/2, 125), you_text, font=you_font, fill=light)
 
-    d.text((90,105),"HISTORICAL PERSONALITY", font=small, fill=accent)
-    d.text((90,155),"100問 × 10軸 × 20人", font=body, fill=light)
+    # 人物名を超大きく表示
+    type_text = f"{figure['name']}タイプ"
+    type_font = fit_text(d, type_text, 1050, 118, 72)
+    tbox = d.textbbox((0,0), type_text, font=type_font)
+    d.text(
+        ((W-(tbox[2]-tbox[0]))/2, 205),
+        type_text,
+        font=type_font,
+        fill=accent
+    )
 
-    portrait = draw_symbolic_portrait(figure, 700)
-    portrait = portrait.resize((620,620))
-    img.paste(portrait, (290,245))
+    # 人物イラストを大きく
+    portrait = draw_symbolic_portrait(figure, 900)
+    portrait = portrait.resize((720, 720))
+    img.paste(portrait, (240, 350))
 
-    # name
-    name_font = fit_text(d, figure["name"], 1000, 78, 44)
-    box = d.textbbox((0,0), figure["name"], font=name_font)
-    tw = box[2]-box[0]
-    d.text(((W-tw)/2,900), figure["name"], font=name_font, fill=light)
-
-    roman_font = fit_text(d, figure["roman"], 1000, 34, 24)
-    box = d.textbbox((0,0), figure["roman"], font=roman_font)
-    d.text(((W-(box[2]-box[0]))/2,1000), figure["roman"], font=roman_font, fill=accent)
-
-    # tagline wrapped manually
+    # キャッチコピー
     tagline = figure["tagline"]
-    tag_font = get_font(31, bold=True)
-    # split around Japanese punctuation/length
+    tag_font = get_font(36, bold=True)
     lines = []
     current = ""
     for ch in tagline:
         trial = current + ch
         box = d.textbbox((0,0), trial, font=tag_font)
-        if box[2]-box[0] > 900 and current:
+        if box[2]-box[0] > 980 and current:
             lines.append(current)
             current = ch
         else:
             current = trial
     if current:
         lines.append(current)
-    y = 1060
+
+    y = 1095
     for line in lines[:2]:
         box = d.textbbox((0,0), line, font=tag_font)
-        d.text(((W-(box[2]-box[0]))/2,y), line, font=tag_font, fill=(235,232,225))
-        y += 48
+        d.text(
+            ((W-(box[2]-box[0]))/2, y),
+            line,
+            font=tag_font,
+            fill=(235,232,225)
+        )
+        y += 52
 
-    # Match badge
-    d.rounded_rectangle([310,1185,890,1325], radius=60, fill=accent)
-    label_font = get_font(31, bold=True)
-    d.text((370,1213),"MATCH",font=label_font,fill=bg)
-    d.text((585,1195),f"{match}%",font=score_font,fill=bg)
+    # マッチ度
+    d.rounded_rectangle(
+        [280, 1230, 920, 1365],
+        radius=60,
+        fill=accent
+    )
+    match_label_font = get_font(32, bold=True)
+    match_num_font = get_font(72, bold=True)
 
+    d.text((355, 1265), "AI MATCH", font=match_label_font, fill=bg)
+    d.text((650, 1240), f"{match}%", font=match_num_font, fill=bg)
+
+    # フッター
     footer = "#歴史上の人物性格診断"
-    footer_font = get_font(28, bold=True)
-    box = d.textbbox((0,0), footer, font=footer_font)
-    d.text(((W-(box[2]-box[0]))/2,1370), footer, font=footer_font, fill=light)
+    footer_font = get_font(30, bold=True)
+    fbox = d.textbbox((0,0), footer, font=footer_font)
+    d.text(
+        ((W-(fbox[2]-fbox[0]))/2, 1408),
+        footer,
+        font=footer_font,
+        fill=light
+    )
 
     bio = io.BytesIO()
     img.save(bio, format="PNG", optimize=True)
