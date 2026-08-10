@@ -1200,8 +1200,8 @@ CHIBI_PRESETS = {
 
 def draw_symbolic_portrait(figure, size=900):
     """
-    20人を一目で見分けやすい、人物別デフォルメ調イラスト。
-    外部画像は使わず、髪型・衣装・頭飾り・配色を人物ごとに変える。
+    人物ごとに髪型・衣装・装飾を変えたオリジナルのアニメ調デフォルメイラスト。
+    外部素材は転載せず、コードだけで生成する。
     """
     preset = CHIBI_PRESETS.get(figure["name"], {})
     bg, accent, light = palette_for(figure)
@@ -1212,129 +1212,391 @@ def draw_symbolic_portrait(figure, size=900):
     head = preset.get("head", "none")
     hair_style = preset.get("hair", "short")
 
-    img = Image.new("RGB", (size, size), (250, 247, 239))
+    # clean bright anime-card background
+    img = Image.new("RGB", (size, size), (255, 252, 244))
     d = ImageDraw.Draw(img)
     cx = size // 2
 
-    # card aura
-    d.ellipse([size*.08,size*.06,size*.92,size*.90], fill=(255,250,235), outline=trim, width=max(3,size//180))
+    # soft circular aura
+    aura1 = tuple(min(255, int(c + 45)) for c in trim)
+    aura2 = tuple(min(255, int(c + 70)) for c in trim)
+    d.ellipse(
+        [size*.065,size*.045,size*.935,size*.915],
+        fill=aura2,
+        outline=trim,
+        width=max(3,size//180)
+    )
+    d.ellipse(
+        [size*.105,size*.085,size*.895,size*.875],
+        fill=(255,252,244),
+        outline=aura1,
+        width=max(3,size//210)
+    )
+
+    # sparkles / decorative rays
     for k in range(12):
         ang = 2*math.pi*k/12
-        x1 = cx + math.cos(ang)*size*.37
-        y1 = size*.45 + math.sin(ang)*size*.37
-        x2 = cx + math.cos(ang)*size*.44
-        y2 = size*.45 + math.sin(ang)*size*.44
-        d.line((x1,y1,x2,y2), fill=trim, width=max(3,size//220))
+        r1, r2 = size*.365, size*.425
+        x1 = cx + math.cos(ang)*r1
+        y1 = size*.44 + math.sin(ang)*r1
+        x2 = cx + math.cos(ang)*r2
+        y2 = size*.44 + math.sin(ang)*r2
+        d.line((x1,y1,x2,y2), fill=trim, width=max(3,size//240))
 
-    # oversized chibi robe/body
-    d.rounded_rectangle([size*.16,size*.58,size*.84,size*.96], radius=int(size*.14), fill=robe, outline=bg, width=max(3,size//220))
+    # --------------------------------------------------------
+    # chibi body: smaller body / bigger head
+    # --------------------------------------------------------
     # sleeves
-    d.ellipse([size*.07,size*.62,size*.34,size*.91], fill=robe)
-    d.ellipse([size*.66,size*.62,size*.93,size*.91], fill=robe)
-    d.polygon([(size*.35,size*.62),(size*.50,size*.82),(size*.65,size*.62),(size*.59,size*.93),(size*.41,size*.93)], fill=trim)
+    d.ellipse([size*.07,size*.64,size*.34,size*.91], fill=robe, outline=(45,35,35), width=max(2,size//300))
+    d.ellipse([size*.66,size*.64,size*.93,size*.91], fill=robe, outline=(45,35,35), width=max(2,size//300))
+
+    # torso
+    d.rounded_rectangle(
+        [size*.21,size*.61,size*.79,size*.965],
+        radius=int(size*.10),
+        fill=robe,
+        outline=(45,35,35),
+        width=max(3,size//240)
+    )
+
+    # clothing front panel
+    d.polygon(
+        [
+            (size*.355,size*.63),
+            (size*.50,size*.80),
+            (size*.645,size*.63),
+            (size*.59,size*.94),
+            (size*.41,size*.94),
+        ],
+        fill=trim,
+        outline=(55,45,40)
+    )
+    d.polygon(
+        [
+            (size*.40,size*.65),
+            (size*.50,size*.77),
+            (size*.60,size*.65),
+            (size*.565,size*.91),
+            (size*.435,size*.91),
+        ],
+        fill=(255,247,225)
+    )
 
     # neck
-    d.rounded_rectangle([size*.43,size*.50,size*.57,size*.66], radius=int(size*.04), fill=(248,218,178))
+    skin = (252,221,181)
+    d.rounded_rectangle(
+        [size*.435,size*.50,size*.565,size*.665],
+        radius=int(size*.035),
+        fill=skin,
+        outline=(70,50,45),
+        width=max(2,size//330)
+    )
 
-    # face
-    skin = (252,222,180)
-    d.ellipse([size*.28,size*.16,size*.72,size*.61], fill=skin, outline=(55,45,40), width=max(3,size//220))
+    # --------------------------------------------------------
+    # huge chibi head
+    # --------------------------------------------------------
+    d.ellipse(
+        [size*.245,size*.115,size*.755,size*.625],
+        fill=skin,
+        outline=(42,32,36),
+        width=max(4,size//190)
+    )
 
-    # hair base by style
+    # hair behind head
+    if hair_style in ("long","verylong","egypt"):
+        d.ellipse([size*.19,size*.15,size*.37,size*.76], fill=hair, outline=(40,30,35), width=max(3,size//260))
+        d.ellipse([size*.63,size*.15,size*.81,size*.76], fill=hair, outline=(40,30,35), width=max(3,size//260))
+        if hair_style == "verylong":
+            d.rounded_rectangle([size*.20,size*.43,size*.35,size*.84], radius=int(size*.045), fill=hair)
+            d.rounded_rectangle([size*.65,size*.43,size*.80,size*.84], radius=int(size*.045), fill=hair)
+
+    # hair cap / bangs
     if hair_style == "bald":
         pass
-    elif hair_style in ("long","verylong","egypt"):
-        d.pieslice([size*.23,size*.08,size*.77,size*.61],180,360,fill=hair)
-        d.ellipse([size*.20,size*.20,size*.34,size*.70], fill=hair)
-        d.ellipse([size*.66,size*.20,size*.80,size*.70], fill=hair)
-        if hair_style == "verylong":
-            d.rounded_rectangle([size*.21,size*.42,size*.34,size*.83], radius=int(size*.05), fill=hair)
-            d.rounded_rectangle([size*.66,size*.42,size*.79,size*.83], radius=int(size*.05), fill=hair)
-    elif hair_style == "bun":
-        d.pieslice([size*.25,size*.09,size*.75,size*.56],180,360,fill=hair)
-        d.ellipse([size*.42,size*.05,size*.58,size*.20], fill=hair)
     elif hair_style == "wild":
-        for k in range(11):
-            x = size*(.30 + .04*k)
-            y = size*(.13 + (.02 if k%2 else 0))
-            d.polygon([(x-size*.05,y+size*.09),(x,y-size*.06),(x+size*.05,y+size*.09)], fill=hair)
+        for k in range(12):
+            x = size*(.255 + .045*k)
+            tipy = size*(.055 + (.025 if k%2 else 0))
+            d.polygon(
+                [(x-size*.046,size*.285),(x,tipy),(x+size*.046,size*.285)],
+                fill=hair
+            )
     elif hair_style == "spiky":
-        for k in range(9):
-            x = size*(.29 + .052*k)
-            d.polygon([(x-size*.04,size*.27),(x,size*.08),(x+size*.04,size*.27)], fill=hair)
+        for k in range(10):
+            x = size*(.265 + .052*k)
+            tipy = size*(.075 + .02*(k%2))
+            d.polygon(
+                [(x-size*.045,size*.285),(x,tipy),(x+size*.045,size*.285)],
+                fill=hair
+            )
     elif hair_style == "messy":
-        for k in range(8):
-            x = size*(.30 + .055*k)
-            tip = size*(.09 + .025*(k%3))
-            d.polygon([(x-size*.05,size*.30),(x,tip),(x+size*.05,size*.30)], fill=hair)
-    elif hair_style == "samurai":
-        d.pieslice([size*.27,size*.10,size*.73,size*.55],180,360,fill=hair)
-        d.ellipse([size*.45,size*.07,size*.55,size*.18], fill=hair)
+        for k in range(9):
+            x = size*(.27 + .057*k)
+            tipy = size*(.07 + .025*(k%3))
+            d.polygon(
+                [(x-size*.055,size*.29),(x,tipy),(x+size*.055,size*.29)],
+                fill=hair
+            )
     elif hair_style == "bob":
-        d.pieslice([size*.25,size*.09,size*.75,size*.59],180,360,fill=hair)
-        d.rounded_rectangle([size*.24,size*.27,size*.35,size*.58], radius=int(size*.04), fill=hair)
-        d.rounded_rectangle([size*.65,size*.27,size*.76,size*.58], radius=int(size*.04), fill=hair)
+        d.pieslice([size*.22,size*.07,size*.78,size*.64],180,360,fill=hair)
+        d.rounded_rectangle([size*.215,size*.23,size*.35,size*.59], radius=int(size*.045), fill=hair)
+        d.rounded_rectangle([size*.65,size*.23,size*.785,size*.59], radius=int(size*.045), fill=hair)
+    elif hair_style == "bun":
+        d.pieslice([size*.225,size*.065,size*.775,size*.59],180,360,fill=hair)
+        d.ellipse([size*.405,size*.025,size*.595,size*.19], fill=hair, outline=(45,35,38), width=max(2,size//280))
+    elif hair_style == "samurai":
+        d.pieslice([size*.23,size*.07,size*.77,size*.585],180,360,fill=hair)
+        d.ellipse([size*.445,size*.04,size*.555,size*.17], fill=hair)
+    elif hair_style == "egypt":
+        d.pieslice([size*.225,size*.06,size*.775,size*.59],180,360,fill=hair)
+        # Egyptian straight side hair details
+        for yy in (0.27,0.33,0.39,0.45,0.51):
+            d.line((size*.23,size*yy,size*.34,size*yy), fill=trim, width=max(2,size//320))
+            d.line((size*.66,size*yy,size*.77,size*yy), fill=trim, width=max(2,size//320))
     else:
-        d.pieslice([size*.27,size*.10,size*.73,size*.55],180,360,fill=hair)
+        d.pieslice([size*.225,size*.065,size*.775,size*.595],180,360,fill=hair)
 
-    # anime eyes
-    for ex in (size*.41,size*.59):
-        d.ellipse([ex-size*.060,size*.365,ex+size*.060,size*.435], fill=(255,255,255), outline=(35,30,30), width=max(3,size//250))
-        d.ellipse([ex-size*.025,size*.377,ex+size*.025,size*.427], fill=trim)
-        d.ellipse([ex-size*.010,size*.390,ex+size*.010,size*.420], fill=(25,25,28))
-        d.ellipse([ex-size*.014,size*.380,ex-size*.003,size*.391], fill=(255,255,255))
+    # anime-style bangs
+    if hair_style != "bald":
+        bang_points = [
+            (size*.27,size*.245),
+            (size*.34,size*.12),
+            (size*.39,size*.255),
+            (size*.46,size*.105),
+            (size*.50,size*.25),
+            (size*.55,size*.11),
+            (size*.61,size*.255),
+            (size*.68,size*.13),
+            (size*.73,size*.245),
+        ]
+        d.polygon(bang_points, fill=hair)
 
-    # brows / nose / smile / blush
-    d.line((size*.36,size*.335,size*.45,size*.325), fill=(45,35,32), width=max(3,size//220))
-    d.line((size*.55,size*.325,size*.64,size*.335), fill=(45,35,32), width=max(3,size//220))
-    d.line((size*.50,size*.41,size*.49,size*.465), fill=(170,120,90), width=max(2,size//300))
-    d.arc([size*.43,size*.45,size*.57,size*.53], 15,165, fill=(145,80,65), width=max(3,size//250))
-    blush=(245,145,145)
-    d.ellipse([size*.32,size*.43,size*.39,size*.46], fill=blush)
-    d.ellipse([size*.61,size*.43,size*.68,size*.46], fill=blush)
+    # --------------------------------------------------------
+    # large glossy anime eyes
+    # --------------------------------------------------------
+    eye_outline=(40,28,34)
+    iris = trim if sum(trim) < 690 else accent
+    for ex in (size*.405,size*.595):
+        # eye white
+        d.ellipse(
+            [ex-size*.071,size*.335,ex+size*.071,size*.445],
+            fill=(255,255,255),
+            outline=eye_outline,
+            width=max(4,size//210)
+        )
+        # colored iris
+        d.ellipse(
+            [ex-size*.038,size*.348,ex+size*.038,size*.432],
+            fill=iris,
+            outline=(70,45,35),
+            width=max(2,size//310)
+        )
+        # pupil
+        d.ellipse(
+            [ex-size*.018,size*.365,ex+size*.018,size*.423],
+            fill=(24,20,28)
+        )
+        # two highlights
+        d.ellipse(
+            [ex-size*.023,size*.355,ex-size*.005,size*.376],
+            fill=(255,255,255)
+        )
+        d.ellipse(
+            [ex+size*.008,size*.390,ex+size*.019,size*.402],
+            fill=(255,255,255)
+        )
+        # upper lash line
+        d.arc(
+            [ex-size*.078,size*.325,ex+size*.078,size*.445],
+            200,340,
+            fill=eye_outline,
+            width=max(5,size//185)
+        )
 
-    # head accessories per figure
+    # eyebrows
+    d.arc([size*.315,size*.285,size*.465,size*.35],200,330,fill=(48,33,33),width=max(4,size//220))
+    d.arc([size*.535,size*.285,size*.685,size*.35],210,340,fill=(48,33,33),width=max(4,size//220))
+
+    # tiny anime nose
+    d.line(
+        (size*.50,size*.405,size*.49,size*.455),
+        fill=(178,122,90),
+        width=max(2,size//330)
+    )
+
+    # small smile
+    d.arc(
+        [size*.425,size*.445,size*.575,size*.535],
+        15,165,
+        fill=(145,70,72),
+        width=max(4,size//220)
+    )
+
+    # blush
+    blush=(247,145,155)
+    d.ellipse([size*.30,size*.435,size*.38,size*.47], fill=blush)
+    d.ellipse([size*.62,size*.435,size*.70,size*.47], fill=blush)
+
+    # --------------------------------------------------------
+    # character-specific head/accessory motifs
+    # --------------------------------------------------------
     if head == "crest":
-        d.polygon([(size*.43,size*.15),(size*.50,size*.05),(size*.57,size*.15),(size*.50,size*.12)], fill=trim)
+        d.polygon(
+            [(size*.40,size*.145),(size*.50,size*.025),(size*.60,size*.145),(size*.50,size*.105)],
+            fill=trim,
+            outline=(75,55,30)
+        )
     elif head == "helmet":
-        d.arc([size*.26,size*.07,size*.74,size*.39],180,360,fill=trim,width=max(10,size//45))
+        d.arc(
+            [size*.22,size*.035,size*.78,size*.36],
+            180,360,
+            fill=trim,
+            width=max(13,size//40)
+        )
+        d.polygon([(size*.46,size*.07),(size*.50,size*.01),(size*.54,size*.07)], fill=trim)
     elif head == "beret":
-        d.ellipse([size*.32,size*.07,size*.68,size*.19], fill=robe)
+        d.ellipse(
+            [size*.30,size*.045,size*.70,size*.19],
+            fill=robe,
+            outline=(50,40,45),
+            width=max(3,size//260)
+        )
     elif head == "bicorne":
-        d.polygon([(size*.30,size*.13),(size*.50,size*.04),(size*.70,size*.13),(size*.50,size*.19)], fill=(32,35,55))
-        d.line((size*.34,size*.13,size*.66,size*.13), fill=trim, width=max(4,size//180))
+        d.polygon(
+            [(size*.25,size*.14),(size*.50,size*.025),(size*.75,size*.14),(size*.50,size*.20)],
+            fill=(28,31,55),
+            outline=(60,45,30)
+        )
+        d.line(
+            (size*.30,size*.135,size*.70,size*.135),
+            fill=trim,
+            width=max(5,size//170)
+        )
     elif head == "glasses":
-        d.ellipse([size*.33,size*.35,size*.47,size*.44], outline=(40,40,45), width=max(3,size//230))
-        d.ellipse([size*.53,size*.35,size*.67,size*.44], outline=(40,40,45), width=max(3,size//230))
-        d.line((size*.47,size*.395,size*.53,size*.395), fill=(40,40,45), width=max(3,size//230))
+        d.ellipse(
+            [size*.315,size*.335,size*.475,size*.445],
+            outline=(35,35,40),
+            width=max(4,size//200)
+        )
+        d.ellipse(
+            [size*.525,size*.335,size*.685,size*.445],
+            outline=(35,35,40),
+            width=max(4,size//200)
+        )
+        d.line(
+            (size*.475,size*.39,size*.525,size*.39),
+            fill=(35,35,40),
+            width=max(4,size//200)
+        )
     elif head == "magatama":
-        # red side ornaments + green leaves inspired by ancient-Japan motif
-        d.ellipse([size*.23,size*.17,size*.32,size*.28], fill=(210,28,25), outline=(90,20,20), width=max(2,size//280))
-        d.ellipse([size*.68,size*.17,size*.77,size*.28], fill=(210,28,25), outline=(90,20,20), width=max(2,size//280))
-        d.polygon([(size*.22,size*.19),(size*.12,size*.14),(size*.20,size*.24)], fill=(32,130,55))
-        d.polygon([(size*.78,size*.19),(size*.88,size*.14),(size*.80,size*.24)], fill=(32,130,55))
+        # Himiko-like red ornaments and green leaf accents
+        d.ellipse(
+            [size*.185,size*.145,size*.29,size*.28],
+            fill=(220,32,28),
+            outline=(80,20,20),
+            width=max(3,size//250)
+        )
+        d.ellipse(
+            [size*.71,size*.145,size*.815,size*.28],
+            fill=(220,32,28),
+            outline=(80,20,20),
+            width=max(3,size//250)
+        )
+        d.polygon(
+            [(size*.21,size*.18),(size*.08,size*.115),(size*.18,size*.245)],
+            fill=(34,140,60),
+            outline=(25,80,40)
+        )
+        d.polygon(
+            [(size*.79,size*.18),(size*.92,size*.115),(size*.82,size*.245)],
+            fill=(34,140,60),
+            outline=(25,80,40)
+        )
+        # white head band
+        d.polygon(
+            [(size*.39,size*.135),(size*.61,size*.135),(size*.58,size*.215),(size*.42,size*.215)],
+            fill=(255,255,245),
+            outline=(75,60,55)
+        )
     elif head == "flower":
-        d.ellipse([size*.25,size*.15,size*.30,size*.20], fill=(240,115,150))
-        d.ellipse([size*.29,size*.13,size*.34,size*.19], fill=(245,155,180))
+        for dx,dy in ((0,0),(.035,-.01),(.02,.035),(-.02,.03)):
+            d.ellipse(
+                [size*(.245+dx),size*(.14+dy),size*(.30+dx),size*(.195+dy)],
+                fill=(245,115,160)
+            )
     elif head == "ribbon":
-        d.polygon([(size*.28,size*.16),(size*.20,size*.11),(size*.24,size*.22)], fill=trim)
-        d.polygon([(size*.72,size*.16),(size*.80,size*.11),(size*.76,size*.22)], fill=trim)
+        d.polygon(
+            [(size*.27,size*.145),(size*.17,size*.09),(size*.215,size*.235)],
+            fill=trim,
+            outline=(65,45,45)
+        )
+        d.polygon(
+            [(size*.73,size*.145),(size*.83,size*.09),(size*.785,size*.235)],
+            fill=trim,
+            outline=(65,45,45)
+        )
     elif head == "crown":
-        d.polygon([(size*.34,size*.17),(size*.38,size*.06),(size*.46,size*.15),(size*.50,size*.04),(size*.55,size*.15),(size*.63,size*.06),(size*.67,size*.17)], fill=trim)
+        d.polygon(
+            [(size*.32,size*.15),(size*.37,size*.035),(size*.45,size*.13),
+             (size*.50,size*.015),(size*.55,size*.13),(size*.63,size*.035),
+             (size*.68,size*.15)],
+            fill=trim,
+            outline=(95,65,20)
+        )
     elif head == "armor":
-        d.arc([size*.24,size*.06,size*.76,size*.38],180,360,fill=(125,130,140),width=max(8,size//55))
+        d.arc(
+            [size*.20,size*.025,size*.80,size*.365],
+            180,360,
+            fill=(132,140,155),
+            width=max(14,size//38)
+        )
+        d.line(
+            (size*.50,size*.03,size*.50,size*.17),
+            fill=trim,
+            width=max(5,size//170)
+        )
     elif head == "nurse":
-        d.polygon([(size*.41,size*.12),(size*.59,size*.12),(size*.56,size*.20),(size*.44,size*.20)], fill=(250,250,245), outline=trim)
+        d.polygon(
+            [(size*.39,size*.10),(size*.61,size*.10),(size*.58,size*.205),(size*.42,size*.205)],
+            fill=(255,255,250),
+            outline=trim
+        )
+        d.line(
+            (size*.50,size*.12,size*.50,size*.185),
+            fill=(180,45,45),
+            width=max(4,size//220)
+        )
+        d.line(
+            (size*.465,size*.152,size*.535,size*.152),
+            fill=(180,45,45),
+            width=max(4,size//220)
+        )
     elif head == "atom":
-        for off in (-1,0,1):
-            d.ellipse([size*(.43+off*.015),size*.09,size*(.57+off*.015),size*.18], outline=trim, width=max(2,size//300))
+        for shift in (-.018,0,.018):
+            d.ellipse(
+                [size*(.42+shift),size*.075,size*(.58+shift),size*.175],
+                outline=trim,
+                width=max(3,size//280)
+            )
 
-    # symbolic medallion
-    d.ellipse([size*.40,size*.73,size*.60,size*.93], fill=(250,246,235), outline=trim, width=max(3,size//200))
-    sf = get_font(int(size*.085), bold=True)
-    sym = figure["symbol"]
-    bb = d.textbbox((0,0), sym, font=sf)
-    d.text((cx-(bb[2]-bb[0])/2,size*.82-(bb[3]-bb[1])/2), sym, font=sf, fill=robe)
+    # --------------------------------------------------------
+    # figure symbol medallion
+    # --------------------------------------------------------
+    d.ellipse(
+        [size*.395,size*.745,size*.605,size*.955],
+        fill=(255,253,245),
+        outline=trim,
+        width=max(4,size//190)
+    )
+    sf=get_font(int(size*.095),bold=True)
+    sym=figure["symbol"]
+    bb=d.textbbox((0,0),sym,font=sf)
+    d.text(
+        (cx-(bb[2]-bb[0])/2,size*.84-(bb[3]-bb[1])/2),
+        sym,
+        font=sf,
+        fill=robe
+    )
 
     return img
 
@@ -1716,6 +1978,40 @@ if st.session_state.completed and st.session_state.result_data:
             st.markdown(f"**{f['name']}**")
             st.caption(f["tagline"])
 
+    st.subheader("🎨 全20キャラクターを見る")
+    st.write(
+        "診断後は、候補になった20人すべてをイラスト付きで確認できます。"
+        "あなたの結果以外のタイプも見比べてみてください。"
+    )
+
+    with st.expander("全20人のキャラクター一覧を開く", expanded=False):
+        gallery_cols = st.columns(4)
+
+        for idx, character in enumerate(FIGURES):
+            with gallery_cols[idx % 4]:
+                is_result = character["name"] == figure["name"]
+
+                if is_result:
+                    st.markdown("### ⭐ あなたのタイプ")
+                else:
+                    st.markdown("### ")
+
+                st.image(
+                    portrait_bytes(character),
+                    use_container_width=True,
+                )
+
+                st.markdown(f"**{character['name']}**")
+                st.caption(f"{character['gender']} ｜ {character['era']}")
+                st.write(character["tagline"])
+
+                if is_result:
+                    st.success("あなたの診断結果")
+
+        st.caption(
+            "※キャラクター画像は、この診断サイト用にコードで生成するオリジナルのデフォルメ表現です。"
+        )
+
     st.subheader("🏅 あなたに近かった人物 TOP5")
     for rank, (dist, _, f) in enumerate(ranked[:5], start=1):
         st.write(f"**{rank}. {f['name']}**　—　マッチ度 {match_percent(dist)}%")
@@ -1891,14 +2187,24 @@ if not st.session_state.started:
 
     tab1, tab2, tab3 = st.tabs(["20人の候補", "10の性格軸", "診断の仕組み"])
     with tab1:
+        st.caption("20人全員をオリジナルのアニメ調デフォルメキャラクターで表示します。")
+
         men = [f for f in FIGURES if f["gender"] == "男性"]
         women = [f for f in FIGURES if f["gender"] == "女性"]
+
         st.markdown("**男性10人**")
-        for f in men:
-            st.write(f"{f['name']} — {f['tagline']}")
+        men_cols = st.columns(5)
+        for idx, f in enumerate(men):
+            with men_cols[idx % 5]:
+                st.image(portrait_bytes(f), use_container_width=True)
+                st.markdown(f"**{f['name']}**")
+
         st.markdown("**女性10人**")
-        for f in women:
-            st.write(f"{f['name']} — {f['tagline']}")
+        women_cols = st.columns(5)
+        for idx, f in enumerate(women):
+            with women_cols[idx % 5]:
+                st.image(portrait_bytes(f), use_container_width=True)
+                st.markdown(f"**{f['name']}**")
     with tab2:
         for meta in AXES.values():
             st.write(f"**{meta['name']}**：{meta['low']} ←→ {meta['high']}")
