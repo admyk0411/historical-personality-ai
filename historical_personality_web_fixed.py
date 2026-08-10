@@ -25,7 +25,8 @@ from PIL import Image, ImageDraw, ImageFont, ImageFilter
 # 100問 / 5択 / 10軸 / 20人物（男性10・女性10）
 #
 # 設計方針
-# - OpenAI API不要（APIクレジット切れで診断停止しない）
+# - AI分析エンジン搭載（特徴ベクトル＋複数類似度スコア）
+# - 外部生成AI API不要（APIクレジット切れで診断停止しない）
 # - 生IPは保存しない。HMAC-SHA256の擬似識別子のみ保存
 # - 100問の回答を各軸に数値化し、20人物から必ず1人に確定
 # - 診断理由 / 強み / 注意点 / 向いている仕事 / 相性タイプ
@@ -37,7 +38,7 @@ from PIL import Image, ImageDraw, ImageFont, ImageFilter
 # ============================================================
 
 st.set_page_config(
-    page_title="歴史上の人物 性格診断｜100問でわかるあなたの偉人タイプ",
+    page_title="AI歴史上の人物 性格診断｜100問でわかるあなたの偉人タイプ",
     page_icon="🏛️",
     layout="centered",
     initial_sidebar_state="collapsed",
@@ -871,18 +872,119 @@ def calculate_scores(answers):
     return scores
 
 def distance(user_scores, profile):
-    # Weighted normalized Euclidean distance.
-    # All axes are currently equal weight to avoid hidden prioritization.
+    """
+    10次元特徴ベクトル間の正規化ユークリッド距離。
+    小さいほど人物プロフィールに近い。
+    """
     sq = sum((user_scores[a] - profile[a]) ** 2 for a in AXES)
     return math.sqrt(sq / len(AXES))
 
-def rank_figures(scores):
+
+def cosine_similarity(user_scores, profile):
+    """
+    10次元ベクトルの方向性を比較するコサイン類似度。
+    -1～1 を 0～1 に正規化して返す。
+    """
+    u = [float(user_scores[a]) for a in AXES]
+    p = [float(profile[a]) for a in AXES]
+
+    dot = sum(x * y for x, y in zip(u, p))
+    nu = math.sqrt(sum(x * x for x in u))
+    np = math.sqrt(sum(y * y for y in p))
+
+    if nu == 0 or np == 0:
+        return 0.5
+
+    cosine = max(-1.0, min(1.0, dot / (nu * np)))
+    return (cosine + 1.0) / 2.0
+
+
+def polarity_similarity(user_scores, profile):
+    """
+    各性格軸がプラス側/マイナス側のどちらを向いているか、
+    さらに強度がどの程度近いかを比較する補助スコア。
+    """
+    values = []
+    for axis in AXES:
+        u = float(user_scores[axis])
+        p = float(profile[axis])
+
+        same_direction = 1.0 if (u == 0 or p == 0 or (u > 0) == (p > 0)) else 0.0
+        magnitude = max(0.0, 1.0 - abs(abs(u) - abs(p)) / 100.0)
+
+        values.append(0.65 * same_direction + 0.35 * magnitude)
+
+    return sum(values) / len(values)
+
+
+def ai_similarity_score(user_scores, profile):
+    """
+    AI分析エンジン。
+
+    1. ユークリッド距離：特徴量の絶対的な近さ
+    2. コサイン類似度：性格ベクトルの方向性
+    3. 極性類似度：各軸のプラス/マイナス傾向と強さ
+
+    3種類をアンサンブルし、1つの総合類似スコアにする。
+    外部生成AI APIは使用しないため、API残高に依存しない。
+    """
+    d = distance(user_scores, profile)
+    euclidean_similarity = max(0.0, min(1.0, 1.0 - d / 200.0))
+    cosine = cosine_similarity(user_scores, profile)
+    polarity = polarity_similarity(user_scores, profile)
+
+    # 絶対距離を中心に、方向性と軸の極性を補助評価
+    score = (
+        0.55 * euclidean_similarity
+        + 0.30 * cosine
+        + 0.15 * polarity
+    )
+    return max(0.0, min(1.0, score))
+
+
+def ai_rank_figures(scores):
+    """
+    20人全員をAI分析し、必ず1位を確定する。
+    同点時は登録順をタイブレークに使用。
+    """
     ranked = []
-    for idx, f in enumerate(FIGURES):
-        d = distance(scores, f["profile"])
-        ranked.append((d, idx, f))
-    ranked.sort(key=lambda x: (round(x[0], 12), x[1]))
+    for idx, figure in enumerate(FIGURES):
+        d = distance(scores, figure["profile"])
+        ai_score = ai_similarity_score(scores, figure["profile"])
+        ranked.append((d, idx, figure, ai_score))
+
+    ranked.sort(
+        key=lambda x: (
+            -round(x[3], 12),  # AI総合スコアが高い順
+            round(x[0], 12),   # 同点なら距離が近い順
+            x[1],              # 完全同点なら登録順
+        )
+    )
     return ranked
+
+
+def rank_figures(scores):
+    """
+    既存コードとの互換性を保ちながら、
+    AI分析エンジンの順位を従来形式へ変換する。
+    """
+    ai_ranked = ai_rank_figures(scores)
+    return [(d, idx, figure) for d, idx, figure, _ in ai_ranked]
+
+
+def get_ai_analysis_details(scores, figure):
+    d = distance(scores, figure["profile"])
+    euclidean_similarity = max(0.0, min(1.0, 1.0 - d / 200.0))
+    cosine = cosine_similarity(scores, figure["profile"])
+    polarity = polarity_similarity(scores, figure["profile"])
+    total = ai_similarity_score(scores, figure["profile"])
+
+    return {
+        "total": round(total * 100, 1),
+        "distance_similarity": round(euclidean_similarity * 100, 1),
+        "cosine_similarity": round(cosine * 100, 1),
+        "polarity_similarity": round(polarity * 100, 1),
+    }
 
 def match_percent(d):
     # Theoretical max distance = 200
@@ -1321,7 +1423,8 @@ st.markdown(f"""
     <span class="badge">5段階回答</span>
     <span class="badge">10性格軸</span>
     <span class="badge">20人物</span>
-    <span class="badge">API不要</span>
+    <span class="badge">🤖 AI分析搭載</span>
+    <span class="badge">外部AI API不要</span>
     <span class="badge">結果画像つき</span>
   </div>
 </div>
@@ -1361,6 +1464,7 @@ if st.session_state.completed and st.session_state.result_data:
     ranked = data["ranked"]
     compatible = data["compatible"]
     match = data["match"]
+    ai_details = data.get("ai_details", get_ai_analysis_details(scores, figure))
 
     portrait = portrait_bytes(figure)
 
@@ -1382,6 +1486,20 @@ if st.session_state.completed and st.session_state.result_data:
     st.caption("人物の数値プロフィールとイラストは、この診断のために作成した独自モデルです。歴史学上・心理学上の確定的評価ではありません。")
 
     render_ad("result")
+
+    st.subheader("🤖 AI分析結果")
+    st.markdown(
+        "100問の回答を10次元の特徴ベクトルへ変換し、"
+        "3種類の類似度をAI分析エンジンで統合して判定しています。"
+    )
+    ai1, ai2, ai3, ai4 = st.columns(4)
+    ai1.metric("AI総合一致度", f"{ai_details['total']:.1f}%")
+    ai2.metric("特徴距離", f"{ai_details['distance_similarity']:.1f}%")
+    ai3.metric("方向類似度", f"{ai_details['cosine_similarity']:.1f}%")
+    ai4.metric("軸傾向一致", f"{ai_details['polarity_similarity']:.1f}%")
+    st.caption(
+        "※生成AIによる文章推測ではなく、回答データを数値化して比較する診断専用AI分析です。"
+    )
 
     st.subheader("🔍 なぜこの人物になった？")
     st.markdown(f'<div class="reason">{result_reason(scores, figure)}</div>', unsafe_allow_html=True)
@@ -1441,7 +1559,7 @@ if st.session_state.completed and st.session_state.result_data:
     st.image(share_card, caption="SNS投稿用の結果カード", use_container_width=True)
 
     share_text = (
-        f"100問の『歴史上の人物 性格診断』をやったら、"
+        f"100問の『AI歴史上の人物 性格診断』をやったら、"
         f"私は「{figure['name']}」タイプでした！\n"
         f"{figure['tagline']}\n"
         f"マッチ度 {match}%\n"
@@ -1481,6 +1599,7 @@ if st.session_state.completed and st.session_state.result_data:
         "app_version": APP_VERSION,
         "result": figure["name"],
         "match_percent": match,
+        "ai_analysis": ai_details,
         "axis_scores": scores,
         "top5": [
             {"rank": i+1, "name": f["name"], "match_percent": match_percent(d)}
@@ -1548,12 +1667,15 @@ if st.session_state.completed and st.session_state.result_data:
     # transparency
     with st.expander("診断ロジックとプライバシーについて"):
         st.markdown("""
-        **診断ロジック**
+        **AI診断ロジック**
         - 100問を10軸に10問ずつ割り当てています。
         - 5段階回答を -2 / -1 / 0 / +1 / +2 に変換します。
         - 逆転項目は符号を反転し、各軸を -100〜+100 に正規化します。
-        - 20人物それぞれの10軸プロフィールとの距離を比較し、最短の1人を結果として確定します。
-        - 完全同点の場合も登録順をタイブレークに利用するため、結果は必ず1人に確定します。
+        - 100回答から10次元の性格特徴ベクトルを生成します。
+        - AI分析エンジンが「特徴距離」「コサイン類似度」「軸の極性類似度」をアンサンブルします。
+        - 20人物すべてを総合スコアで比較し、最高スコアの1人を結果として確定します。
+        - 完全同点の場合もタイブレークを行うため、結果は必ず1人に確定します。
+        - ChatGPT等の外部生成AI APIへ診断回答を送信する方式ではありません。
 
         **プライバシー**
         - 氏名・メールアドレスの入力は不要です。
@@ -1574,6 +1696,19 @@ if not st.session_state.started:
     c2.metric("回答", "5択")
     c3.metric("性格軸", "10")
     c4.metric("人物", "20")
+
+    st.markdown("""
+    <div class="soft-card">
+      <h3>🤖 AI分析を使用しています</h3>
+      <p><b>この診断では、100問の回答を10次元の性格特徴ベクトルに変換し、
+      AI分析エンジンが20人の歴史人物モデルとの類似度を比較します。</b></p>
+      <p>絶対的な特徴の近さ・ベクトル方向・各軸の傾向を組み合わせた
+      アンサンブル方式で総合判定し、最も近い人物を1人に確定します。</p>
+      <p class="small">ChatGPTなどの外部生成AIへ回答内容を送信する方式ではありません。
+      診断用AI分析はこのアプリ内の数値モデルで実行されるため、
+      外部AI APIの残高切れによって診断できなくなる構成ではありません。</p>
+    </div>
+    """, unsafe_allow_html=True)
 
     st.markdown("""
     <div class="soft-card">
@@ -1604,9 +1739,10 @@ if not st.session_state.started:
         1. 100問を5段階で回答  
         2. 回答を数値へ変換  
         3. 10の性格軸を -100〜+100 で算出  
-        4. 20人全員のプロフィールと比較  
-        5. 最も近い人物を1人に確定  
-        6. 判断理由・仕事・相性・SNS用画像を表示
+        4. AI分析エンジンが10次元特徴ベクトルを解析  
+        5. 20人全員を3種類の類似度で比較  
+        6. AI総合スコアが最も高い人物を1人に確定  
+        7. 判断理由・仕事・相性・SNS用画像を表示
         """)
 
     consent = st.checkbox(
@@ -1714,9 +1850,11 @@ if nxt:
                 st.error("100問すべての回答を確認できませんでした。前のページを確認してください。")
             else:
                 scores = calculate_scores(st.session_state.answers)
-                ranked = rank_figures(scores)
-                winner = ranked[0][2]
-                match = match_percent(ranked[0][0])
+                ai_ranked = ai_rank_figures(scores)
+                ranked = [(d, idx, f) for d, idx, f, _ in ai_ranked]
+                winner = ai_ranked[0][2]
+                match = round(ai_ranked[0][3] * 100)
+                ai_details = get_ai_analysis_details(scores, winner)
                 compatible = compatible_figures(winner, 3)
                 result_id = str(uuid.uuid4())
                 created_at = datetime.now(timezone.utc).isoformat()
@@ -1743,6 +1881,7 @@ if nxt:
                     "ranked": ranked,
                     "compatible": compatible,
                     "match": match,
+                    "ai_details": ai_details,
                     "save_status": save_status,
                 }
                 st.session_state.completed = True
