@@ -16,6 +16,10 @@ import streamlit as st
 import streamlit.components.v1 as components
 from PIL import Image, ImageDraw, ImageFont, ImageFilter
 
+# ONE-COPY EDITION
+# 運営者メールアドレスをコード内に設定済み。
+# GitHubが公開リポジトリの場合、このメールアドレスも閲覧可能です。
+
 # ============================================================
 # 歴史上の人物 性格診断 — Ultimate Edition
 # 100問 / 5択 / 10軸 / 20人物（男性10・女性10）
@@ -61,6 +65,10 @@ ADS_HTML_TOP = str(secret("ADS_HTML_TOP", ""))
 ADS_HTML_RESULT = str(secret("ADS_HTML_RESULT", ""))
 SPONSOR_TEXT = str(secret("SPONSOR_TEXT", ""))
 SPONSOR_URL = str(secret("SPONSOR_URL", ""))
+ADMIN_EMAIL = "vwzaz39528@yahoo.co.jp"
+CONTACT_EMAIL = "vwzaz39528@yahoo.co.jp"
+PRIVACY_POLICY_URL = str(secret("PRIVACY_POLICY_URL", "")).strip()
+TERMS_URL = str(secret("TERMS_URL", "")).strip()
 
 # ------------------------------------------------------------
 # Design tokens
@@ -549,6 +557,36 @@ def init_db():
                 app_version TEXT NOT NULL
             )
         """)
+        conn.execute("""
+            CREATE TABLE IF NOT EXISTS feedback (
+                id TEXT PRIMARY KEY,
+                created_at TEXT NOT NULL,
+                diagnosis_id TEXT,
+                ip_hash TEXT NOT NULL,
+                rating INTEGER NOT NULL,
+                comment TEXT NOT NULL
+            )
+        """)
+        conn.execute("""
+            CREATE TABLE IF NOT EXISTS reports (
+                id TEXT PRIMARY KEY,
+                created_at TEXT NOT NULL,
+                ip_hash TEXT NOT NULL,
+                category TEXT NOT NULL,
+                message TEXT NOT NULL,
+                page_context TEXT NOT NULL
+            )
+        """)
+        conn.execute("""
+            CREATE TABLE IF NOT EXISTS ad_inquiries (
+                id TEXT PRIMARY KEY,
+                created_at TEXT NOT NULL,
+                company TEXT NOT NULL,
+                contact_name TEXT NOT NULL,
+                email TEXT NOT NULL,
+                message TEXT NOT NULL
+            )
+        """)
         conn.commit()
 
 def save_local(payload):
@@ -611,6 +649,189 @@ def save_result(payload):
     local_ok = save_local(payload)
     remote_ok = save_supabase(payload)
     return {"local": local_ok, "remote": remote_ok}
+
+
+def save_feedback(diagnosis_id, ip_hash, rating, comment):
+    try:
+        init_db()
+        with sqlite3.connect(DB_PATH, timeout=10) as conn:
+            conn.execute("""
+                INSERT INTO feedback
+                (id, created_at, diagnosis_id, ip_hash, rating, comment)
+                VALUES (?, ?, ?, ?, ?, ?)
+            """, (
+                str(uuid.uuid4()),
+                datetime.now(timezone.utc).isoformat(),
+                diagnosis_id,
+                ip_hash,
+                int(rating),
+                str(comment or "")[:2000],
+            ))
+            conn.commit()
+        return True
+    except Exception:
+        return False
+
+
+def save_report(ip_hash, category, message, page_context):
+    try:
+        init_db()
+        with sqlite3.connect(DB_PATH, timeout=10) as conn:
+            conn.execute("""
+                INSERT INTO reports
+                (id, created_at, ip_hash, category, message, page_context)
+                VALUES (?, ?, ?, ?, ?, ?)
+            """, (
+                str(uuid.uuid4()),
+                datetime.now(timezone.utc).isoformat(),
+                ip_hash,
+                str(category)[:100],
+                str(message)[:4000],
+                str(page_context)[:500],
+            ))
+            conn.commit()
+        return True
+    except Exception:
+        return False
+
+
+def save_ad_inquiry(company, contact_name, email, message):
+    try:
+        init_db()
+        with sqlite3.connect(DB_PATH, timeout=10) as conn:
+            conn.execute("""
+                INSERT INTO ad_inquiries
+                (id, created_at, company, contact_name, email, message)
+                VALUES (?, ?, ?, ?, ?, ?)
+            """, (
+                str(uuid.uuid4()),
+                datetime.now(timezone.utc).isoformat(),
+                str(company)[:200],
+                str(contact_name)[:200],
+                str(email)[:320],
+                str(message)[:4000],
+            ))
+            conn.commit()
+        return True
+    except Exception:
+        return False
+
+
+def simple_email_valid(email):
+    email = str(email or "").strip()
+    return (
+        "@" in email
+        and "." in email.split("@")[-1]
+        and " " not in email
+        and len(email) <= 320
+    )
+
+
+def mailto_url(recipient, subject, body):
+    if not recipient:
+        return ""
+    return (
+        f"mailto:{recipient}"
+        f"?subject={quote(subject)}"
+        f"&body={quote(body)}"
+    )
+
+def get_local_stats():
+    """
+    Returns:
+        total_diagnoses: completed diagnosis count
+        unique_users: approximate unique users based on hashed IP
+    """
+    try:
+        init_db()
+        with sqlite3.connect(DB_PATH, timeout=10) as conn:
+            total = conn.execute("SELECT COUNT(*) FROM results").fetchone()[0]
+            unique_users = conn.execute(
+                "SELECT COUNT(DISTINCT ip_hash) FROM results"
+            ).fetchone()[0]
+        return {
+            "total_diagnoses": int(total or 0),
+            "unique_users": int(unique_users or 0),
+            "source": "local",
+        }
+    except Exception:
+        return {
+            "total_diagnoses": 0,
+            "unique_users": 0,
+            "source": "local",
+        }
+
+
+def get_supabase_stats():
+    """
+    Uses Supabase REST count when configured.
+    If unavailable, returns None so the app can fall back to SQLite.
+    """
+    if not SUPABASE_URL or not SUPABASE_KEY:
+        return None
+
+    try:
+        headers = {
+            "apikey": SUPABASE_KEY,
+            "Authorization": f"Bearer {SUPABASE_KEY}",
+            "Prefer": "count=exact",
+        }
+
+        # Total completed diagnoses
+        total_resp = requests.get(
+            f"{SUPABASE_URL}/rest/v1/diagnosis_results?select=id",
+            headers={
+                **headers,
+                "Range": "0-0",
+            },
+            timeout=4,
+        )
+
+        total = 0
+        content_range = total_resp.headers.get("Content-Range", "")
+        if "/" in content_range:
+            tail = content_range.split("/")[-1]
+            if tail.isdigit():
+                total = int(tail)
+
+        # Fetch ip_hash values for approximate unique-user count.
+        # This is intended for small-to-medium traffic. For large traffic,
+        # replace with a Supabase SQL/RPC aggregate.
+        unique_users = None
+        uniq_resp = requests.get(
+            f"{SUPABASE_URL}/rest/v1/diagnosis_results?select=ip_hash&limit=10000",
+            headers={
+                "apikey": SUPABASE_KEY,
+                "Authorization": f"Bearer {SUPABASE_KEY}",
+            },
+            timeout=4,
+        )
+        if 200 <= uniq_resp.status_code < 300:
+            rows = uniq_resp.json()
+            unique_users = len({
+                row.get("ip_hash")
+                for row in rows
+                if row.get("ip_hash")
+            })
+
+        if 200 <= total_resp.status_code < 300:
+            return {
+                "total_diagnoses": total,
+                "unique_users": unique_users,
+                "source": "supabase",
+            }
+
+    except Exception:
+        pass
+
+    return None
+
+
+def get_site_stats():
+    remote = get_supabase_stats()
+    if remote is not None:
+        return remote
+    return get_local_stats()
 
 # ------------------------------------------------------------
 # Privacy / IP pseudonymization
@@ -730,6 +951,22 @@ def score_insight(axis, value):
     if value >= 0:
         return f"{meta['high']}寄りだが、状況によって{meta['low']}側も使い分けやすい"
     return f"{meta['low']}寄りだが、状況によって{meta['high']}側も使い分けやすい"
+
+
+def future_outlook(scores, figure):
+    top = dominant_axes(scores, 3)
+    strongest = AXES[top[0]]["name"]
+    second = AXES[top[1]]["name"]
+    low_axis = min(AXES.keys(), key=lambda a: abs(scores[a]))
+    balance = AXES[low_axis]["name"]
+    text = (
+        f"今後は、あなたの強みである{strongest}と{second}を意識して使うほど、"
+        f"{figure['name']}タイプらしい持ち味が伸びていきます。"
+        f"一方で{balance}は状況に応じて変化しやすい軸です。"
+        f"得意分野だけに寄せず、異なるタイプの人と組むことで判断の幅が広がり、"
+        f"仕事や人間関係でもより安定して力を発揮しやすくなるでしょう。"
+    )
+    return text[:145]
 
 # ------------------------------------------------------------
 # Portrait / SNS card generator
@@ -929,6 +1166,100 @@ def portrait_bytes(figure):
 # ------------------------------------------------------------
 # Ads / sponsor hooks
 # ------------------------------------------------------------
+
+def render_bug_report(page_context="unknown"):
+    with st.expander("🐞 不具合・エラーを報告"):
+        st.caption("開発中のため、表示崩れ・エラー・診断中の問題があればここから送れます。")
+        with st.form(f"bug_report_{page_context}", clear_on_submit=True):
+            category = st.selectbox(
+                "種類",
+                ["エラーが表示された", "画面が動かない", "表示がおかしい", "診断結果について", "その他"],
+            )
+            message = st.text_area(
+                "状況を教えてください",
+                placeholder="例：Q31から次へ進めない／表示されたエラー文など",
+                max_chars=4000,
+            )
+            submit = st.form_submit_button("不具合報告を保存", use_container_width=True)
+        if submit:
+            if not message.strip():
+                st.warning("状況を入力してください。")
+            else:
+                ok = save_report(
+                    hash_ip(get_client_ip()),
+                    category,
+                    message,
+                    page_context,
+                )
+                if ok:
+                    st.success("報告を保存しました。ありがとうございます。")
+                else:
+                    st.error("報告の保存に失敗しました。")
+
+        if ADMIN_EMAIL:
+            body = f"""不具合報告
+
+ページ: {page_context}
+種類: {category}
+
+状況:
+{message}
+"""
+            url = mailto_url(ADMIN_EMAIL, f"【{APP_NAME}】不具合報告", body)
+            if url:
+                st.link_button("メールアプリから直接送る", url, use_container_width=True)
+
+
+def render_advertising_contact():
+    with st.expander("📨 広告掲載・スポンサーのお問い合わせ"):
+        st.write(
+            "この診断サイトへの広告掲載・タイアップ・スポンサーのご相談はこちらから受け付けています。"
+        )
+        with st.form("ad_inquiry_form", clear_on_submit=True):
+            company = st.text_input("会社名・屋号（任意）")
+            contact_name = st.text_input("お名前")
+            email = st.text_input("返信先メールアドレス")
+            message = st.text_area(
+                "お問い合わせ内容",
+                placeholder="掲載希望内容、商品・サービス、希望時期など",
+                max_chars=4000,
+            )
+            send = st.form_submit_button("お問い合わせを保存", use_container_width=True)
+
+        if send:
+            if not contact_name.strip() or not simple_email_valid(email) or not message.strip():
+                st.warning("お名前・有効なメールアドレス・お問い合わせ内容を入力してください。")
+            else:
+                ok = save_ad_inquiry(company, contact_name, email, message)
+                if ok:
+                    st.success("お問い合わせを保存しました。")
+                else:
+                    st.error("お問い合わせの保存に失敗しました。")
+
+        if CONTACT_EMAIL:
+            body = f"""広告掲載のお問い合わせ
+
+会社名・屋号: {company}
+お名前: {contact_name}
+返信先: {email}
+
+内容:
+{message}
+"""
+            url = mailto_url(CONTACT_EMAIL, f"【{APP_NAME}】広告掲載のお問い合わせ", body)
+            if url:
+                st.link_button(
+                    "メールアプリで広告掲載メールを送る",
+                    url,
+                    use_container_width=True,
+                )
+        else:
+            st.caption(
+                "運営者メールアドレスはまだ設定されていません。"
+                "Secrets に ADMIN_EMAIL を設定すると、メール送信ボタンも有効になります。"
+            )
+
+
 def render_ad(position):
     if not ADS_ENABLED:
         return
@@ -955,6 +1286,7 @@ DEFAULTS = {
     "completed": False,
     "result_id": None,
     "result_data": None,
+    "feedback_submitted": False,
 }
 for key, value in DEFAULTS.items():
     if key not in st.session_state:
@@ -971,8 +1303,15 @@ def reset():
 # ------------------------------------------------------------
 # Header
 # ------------------------------------------------------------
-st.markdown("""
-<div class="hero">
+site_stats = get_site_stats()
+hero_count = f"{site_stats['total_diagnoses']:,}"
+
+st.markdown(f"""
+<div class="hero" style="position:relative;">
+  <div style="position:absolute;right:18px;top:16px;text-align:right;">
+    <div style="font-size:.72rem;opacity:.68;">TOTAL DIAGNOSES</div>
+    <div style="font-size:1.45rem;font-weight:800;">{hero_count} 回</div>
+  </div>
   <div class="kicker">Historical Personality Test</div>
   <h1>🏛️ 歴史上の人物 性格診断</h1>
   <p><b>100の質問から、あなたの思考・行動傾向を10軸で数値化。</b><br>
@@ -989,6 +1328,28 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 render_ad("top")
+
+stat_a, stat_b = st.columns(2)
+with stat_a:
+    st.metric(
+        "🏛️ これまでの診断回数",
+        f"{site_stats['total_diagnoses']:,} 回",
+    )
+with stat_b:
+    unique_display = (
+        f"{site_stats['unique_users']:,} 人"
+        if site_stats.get("unique_users") is not None
+        else "集計中"
+    )
+    st.metric(
+        "👥 推定ユニーク利用者",
+        unique_display,
+    )
+
+st.caption(
+    "※ユニーク利用者数は、保存されたハッシュ化IP識別子を基準にした概算です。"
+    "同じ回線を複数人で使う場合や、VPN・携帯回線では実人数と一致しないことがあります。"
+)
 
 # ------------------------------------------------------------
 # Result page
@@ -1050,6 +1411,9 @@ if st.session_state.completed and st.session_state.result_data:
     st.subheader("⚠️ 力を発揮するための注意点")
     for item in figure["watchouts"]:
         st.write(f"・{item}")
+
+    st.subheader("🔭 今後の展望")
+    st.info(future_outlook(scores, figure))
 
     st.subheader("💼 向いている仕事")
     job_cols = st.columns(2)
@@ -1142,6 +1506,41 @@ if st.session_state.completed and st.session_state.result_data:
     )
 
     st.divider()
+    st.subheader("⭐ 診断の満足度")
+    st.write("診断結果をすべて確認したあと、5段階で評価してください。")
+    if not st.session_state.get("feedback_submitted", False):
+        with st.form("satisfaction_form"):
+            rating = st.radio(
+                "満足度",
+                options=[1, 2, 3, 4, 5],
+                index=4,
+                horizontal=True,
+                format_func=lambda x: f"{x} ★" if x == 5 else str(x),
+            )
+            comment = st.text_area(
+                "感想・改善してほしい点（任意）",
+                max_chars=2000,
+            )
+            fb_submit = st.form_submit_button("満足度を送信", type="primary", use_container_width=True)
+        if fb_submit:
+            ok = save_feedback(
+                st.session_state.result_id,
+                hash_ip(get_client_ip()),
+                rating,
+                comment,
+            )
+            if ok:
+                st.session_state.feedback_submitted = True
+                st.success("評価を送信しました。ありがとうございます。")
+            else:
+                st.error("評価の保存に失敗しました。")
+    else:
+        st.success("満足度は送信済みです。")
+
+    render_bug_report("result")
+    render_advertising_contact()
+
+    st.divider()
     if st.button("🔄 もう一度診断する", use_container_width=True):
         reset()
         st.rerun()
@@ -1223,6 +1622,25 @@ if not st.session_state.started:
         st.session_state.started = True
         st.session_state.page = 0
         st.rerun()
+
+    with st.expander("📈 サイト利用状況"):
+        st.write(f"**累計診断回数：{site_stats['total_diagnoses']:,} 回**")
+        if site_stats.get("unique_users") is not None:
+            st.write(f"**推定ユニーク利用者：{site_stats['unique_users']:,} 人**")
+        st.caption(
+            "診断完了時に1回として集計します。"
+            "ユニーク利用者数はハッシュ化IP識別子による概算です。"
+        )
+
+    render_bug_report("top")
+    render_advertising_contact()
+
+    if PRIVACY_POLICY_URL or TERMS_URL:
+        link_cols = st.columns(2)
+        if PRIVACY_POLICY_URL:
+            link_cols[0].link_button("プライバシーポリシー", PRIVACY_POLICY_URL, use_container_width=True)
+        if TERMS_URL:
+            link_cols[1].link_button("利用規約", TERMS_URL, use_container_width=True)
 
     st.caption("※この診断は自己理解・娯楽を目的とした独自診断です。医療・採用・心理検査などの専門判断には使用しないでください。")
     st.stop()
